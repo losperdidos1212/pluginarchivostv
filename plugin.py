@@ -60,6 +60,12 @@ NTIMEOUT = nVars.NTIMEOUT
 import socket
 socket.setdefaulttimeout(NTIMEOUT)
 
+############ Variables globales ####################
+CarpetaTMP = "/tmp/archivostv/"
+VersionActual = 100
+usuariopor = "florin2016"
+contrasenapor = "florin2016"
+
 class iptv_streamse():
 
     def __init__(self):
@@ -166,6 +172,11 @@ class iptv_streamse():
             self.delete_images = self.getValue(xml.findall('delete_images'), self.delete_images)
             self.disable_audioselector = self.getValue(xml.findall('disable_audioselector'), self.disable_audioselector)
             print '-----------CONFIG-----------'
+            try:
+                os.system("mkdir -p " + CarpetaTMP)
+                print 'rutaTemporales     %s' % CarpetaTMP
+            except:
+                pass
             print 'startportal     %s' % self.startportal
             print 'use_rtmpw       %s' % self.use_rtmpw
             print 'esr_id          %i' % self.esr_id
@@ -206,6 +217,10 @@ class iptv_streamse():
                     test = self.iptv_list
                     self.playlistname = 'HISTORY'
                     test.sort(reverse=True)
+            elif url.find('megadede.comcom') != -1:
+                ###### Aqui empezare con el tema de scrapear paginas, como Megadede #################
+                tree = ElementTree()
+                xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/megadede.xml')
             elif url == None or url == '':
                 tree = ElementTree()
                 xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/archivostv.xml')
@@ -390,8 +405,8 @@ except Exception as ex:
 from Tools.BoundFunction import boundFunction
 PLUGIN_PATH = '/usr/lib/enigma2/python/Plugins/Extensions/archivostv'
 loadSkin(PLUGIN_PATH + '/nStreamSkin.xml')
-VERSION = derkorder('TVM0eUlBPT0K').strip(' \t\n\r')
-print '-->%s<----' % VERSION
+VERSION = VersionActual
+print '-->%d<----' % VERSION
 HW_INFO = {}
 from enigma import addFont
 try:
@@ -1252,7 +1267,10 @@ class nPlaylist(Screen):
                     except Exception as ex:
                         print ex
                         print 'ex delete 2'
-
+            try:
+                os.system("rm -rf " + CarpetaTMP)
+            except:
+                pass
             self.session.nav.playService(self.oldService)
             self.close()
 
