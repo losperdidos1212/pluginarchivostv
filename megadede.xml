@@ -4,6 +4,7 @@
 
 <channel>       
 <title><![CDATA[Estrenos]]></title>
+<tipo>scraper</tipo>
 <logo_30x30></logo_30x30>
 <description><![CDATA[<img src="https://u277395196.dl.dropboxusercontent.com/u/277395196/portada.png">Portal Dedicado Al Streaming De Peliculas Y Series De Alta Calidad]]></description>
 <playlist_url><![CDATA[https://raw.githubusercontent.com/losperdidos1212/1313/master/HMStream.xml]]></playlist_url>
@@ -12,6 +13,7 @@
 
 <channel>       
 <title><![CDATA[Series]]></title>
+<tipo>scraper</tipo>
 <logo_30x30></logo_30x30>
 <description><![CDATA[<img src="https://u277395196.dl.dropboxusercontent.com/u/277395196/portada.png">Portal Dedicado Al Streaming De Peliculas Y Series De Alta Calidad]]></description>
 <playlist_url><![CDATA[https://raw.githubusercontent.com/losperdidos1212/1313/master/HMStream.xml]]></playlist_url>
