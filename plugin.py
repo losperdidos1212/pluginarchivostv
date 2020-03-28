@@ -1,5 +1,4 @@
 # coding: utf-8
-esta es la prueba
 import nVars
 from Plugins.Plugin import PluginDescriptor
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaTest
@@ -2493,6 +2492,5 @@ class nStreamTasksScreen(Screen):
 
     def keyClose(self):
         self.close()
-    
     
       
