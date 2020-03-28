@@ -722,6 +722,7 @@ def Start_iptv_palyer(session, **kwargs):
     print '######################################################################'
     print '#######--------------- START archivostv v%s ---------------#######' % VERSION
     print '######################################################################'
+    print 'esta es la pruebaa'
     HW_INFO = getInfo()
     print HW_INFO['brand']
     print HW_INFO['model']
@@ -2491,5 +2492,6 @@ class nStreamTasksScreen(Screen):
 
     def keyClose(self):
         self.close()
-        
+    
+    
       
