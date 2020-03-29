@@ -4,6 +4,7 @@ from Plugins.Plugin import PluginDescriptor
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaTest
 from Components.ActionMap import ActionMap, HelpableActionMap, NumberActionMap
 from Screens.Screen import Screen
+from Screens.Standby import TryQuitMainloop
 from Components.Sources.List import List
 from enigma import eSize, ePoint, eTimer, loadPNG, quitMainloop, eListbox, ePoint, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, eListboxPythonMultiContent, gFont, getDesktop, ePicLoad, eServiceCenter, iServiceInformation, eServiceReference, iSeekableService, iPlayableService, iPlayableServicePtr
 from Components.MenuList import MenuList
@@ -61,10 +62,43 @@ import socket
 socket.setdefaulttimeout(NTIMEOUT)
 
 ############ Variables globales ####################
+Servidor = 0
 CarpetaTMP = "/tmp/archivostv/"
-VersionActual = 100
+VersionActual = 101
 usuariopor = "florin2016"
 contrasenapor = "florin2016"
+user_agent_default = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+
+def Actualizador():
+    global VersionActual
+
+    try:
+        global Servidor
+        Servidor = 1
+        print "Servidor 1"
+        Buscaver = urllib2.urlopen("https://raw.githubusercontent.com/archivostvteam/pluginarchivostv/master/version")
+        Respuesta = Buscaver.read()
+        Buscaver.close()
+    except:
+        global Servidor
+        Servidor = 2
+        print "Servidor 2"
+        Buscaver = urllib2.urlopen("https://raw.githubusercontent.com/archivostvteam/pluginarchivostv/master/version")
+        Respuesta = Buscaver.read()
+        Buscaver.close()
+
+    VersionMayor = re.findall(r'version=(.*)', Respuesta)
+    VersionMayor = int(VersionMayor[0])
+    
+    print VersionActual
+    print VersionMayor
+    
+    if VersionActual < VersionMayor:
+        print "Version nueva detectada, iniciando actualizador."
+        return True
+    else:
+        print "No hay versiones nuevas, iniciando plugin. "
+        return False
 
 class iptv_streamse():
 
@@ -272,6 +306,9 @@ class iptv_streamse():
                 for channel in xml.findall('channel'):
                     chan_counter = chan_counter + 1
                     name = channel.findtext('title').encode('utf-8')
+                    tipo = "playlist"
+                    if channel.findtext('tipo'):
+                        tipo = channel.findtext('tipo').encode('utf-8')
                     piconname = channel.findtext('logo')
                     description = channel.findtext('description')
                     protected_search = channel.findtext('protected')
@@ -297,6 +334,7 @@ class iptv_streamse():
                         description4playlist_html = description
                         text = re.compile('<[\\/\\!]*?[^<>]*?>')
                         description = text.sub('', description)
+                        
                     stream_url = channel.findtext('stream_url')
                     if stream_url and self.use_rtmpw:
                         stream_url = stream_url.replace('rtmp', 'http://127.0.0.1:1234/?r=rtmp')
@@ -315,7 +353,8 @@ class iptv_streamse():
                      img_src,
                      description4playlist_html,
                      protected,
-                     ts_stream)
+                     ts_stream,
+                     tipo)
                     iptv_list_temp.append(chan_tulpe)
 
         except Exception as ex:
@@ -720,9 +759,8 @@ def Start_iptv_palyer(session, **kwargs):
     global GOSHA_PARSER
     print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
     print '######################################################################'
-    print '#######--------------- START archivostv v%s ---------------#######' % VERSION
+    print '#######--------------- START archivostv v%d ---------------#######' % VERSION
     print '######################################################################'
-    print 'esta es la pruebaa'
     HW_INFO = getInfo()
     print HW_INFO['brand']
     print HW_INFO['model']
@@ -760,7 +798,23 @@ def Start_iptv_palyer(session, **kwargs):
     STREAMS.get_list('favorites')
     STREAMS.my_favorites = STREAMS.iptv_list
     STREAMS.get_list(STREAMS.startportal)
-    session.open(nPlaylist)
+    
+    Actualiza = Actualizador()
+    
+    if Actualiza == True and Servidor == 1:
+        try:
+            session.open(AjustesPluginArchivosTV)
+        except Exception as err:
+            print err
+            print err
+            print err
+            
+    elif Actualiza == True and Servidor == 2:
+        session.open(AjustesPluginArchivosTV)
+    
+    elif Actualiza == False:
+        print "hasta aqui llegamos o no :SS"
+        session.open(nPlaylist)
 
 
 class nIPTVplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarAudioSelection, InfoBarSubtitleSupport):
@@ -1268,6 +1322,7 @@ class nPlaylist(Screen):
                     except Exception as ex:
                         print ex
                         print 'ex delete 2'
+
             try:
                 os.system("rm -rf " + CarpetaTMP)
             except:
@@ -1417,7 +1472,8 @@ class nPlaylist(Screen):
              selected_channel[6],
              selected_channel[7],
              selected_channel[8],
-             selected_channel[9])
+             selected_channel[9],
+             selected_channel[11])
             STREAMS.iptv_list_history.append(selected_channel_history)
             self.temp_index = -1
             if selected_channel[9] != None:
@@ -1434,6 +1490,8 @@ class nPlaylist(Screen):
             selected_channel = STREAMS.iptv_list[self.index]
             stream_url = selected_channel[4]
             playlist_url = selected_channel[5]
+            tipo = selected_channel[11]
+            print "Este es el tipo: " + tipo
             if playlist_url != None:
                 STREAMS.get_list(playlist_url)
                 self.update_channellist()
@@ -2492,5 +2550,65 @@ class nStreamTasksScreen(Screen):
 
     def keyClose(self):
         self.close()
+  
+class AjustesPluginArchivosTV(Screen):
     
-      
+    def __init__(self, session):
+        Screen.__init__(self, session)
+        self.session = session
+        self['list'] = MenuList([])
+        self['NombreNews'] = Label()
+        self['NombreNews'].setText('...')
+        self['news'] = Label()
+        self["news"].setText('...')
+        self['actions'] = ActionMap(['OkCancelActions'], {'ok': self.okClicked,
+         'cancel': self.iniciarPlugin}, -1)
+        self.onLayoutFinish.append(self.showMenu)
+        
+    def showMenu(self):
+        req = urllib2.Request('https://raw.githubusercontent.com/archivostvteam/pluginarchivostv/master/version')
+        req.add_header('User-Agent',user_agent_default)
+        Abrir = urllib2.urlopen(req, timeout=2)
+        Leer = Abrir.read()
+        Abrir.close()
+        
+        Re_Cambios = r'@\|@\|\s(.*)\s\|@\|@'
+        Re_Cambios1 = r'@@@@\s(.*)\s@@@@'
+        Re_Cambios2 = r'=@=@\s(.*)\s@=@='
+        Busca_Cambios = re.findall(Re_Cambios,Leer)
+        Busca_Cambios1 = re.findall(Re_Cambios1,Leer)
+        Busca_Cambios2 = re.findall(Re_Cambios2,Leer)
+        CAMBIOS = " ".join(Busca_Cambios)
+        CAMBIOS1 = " ".join(Busca_Cambios1)
+        CAMBIOS2 = " ".join(Busca_Cambios2)
+        list = []
+        list.append(_(' Actualizar Plugin'))
+        list.append(_(' Iniciar Plugin'))
+        list.append(_(' Salir del Plugin'))
+        self['list'].setList(list)
+        self['news'].setText(CAMBIOS + '\n' + CAMBIOS1 + '\n' + CAMBIOS2)
+        
+    def okClicked(self):
+        sel = self['list'].getCurrent()
+        if sel == _(' Actualizar Plugin'):
+            self.actualizarPlugin()
+        elif sel == _(' Iniciar Plugin'):
+            self.iniciarPlugin()
+            self.close()
+        elif sel == _(' Salir del Plugin'):
+            self.close(None)
+            
+    def iniciarPlugin(self):
+        self.session.open(nPlaylist)
+        
+    def actualizarPlugin(self):
+        os.system('wget -q https://github.com/archivostvteam/pluginarchivostv/blob/master/plugin.zip?raw=true -O /tmp/plugin.zip')
+        if fileExists('/tmp/plugin.zip'):
+            os.system('unzip -o /tmp/plugin.zip -x opciones -d /usr/lib/enigma2/python/Plugins/Extensions/archivostv/')
+            os.system('rm /tmp/plugin.zip')
+        restart = self.session.openWithCallback(self.restart, MessageBox, '%s\n\n%s\n%s' % (_('Se va a instalar la actualizacion'), _('la interfaz tiene que reiniciarse para aplicar los cambios.'), _('Quieres reiniciar la interfaz ahora?')), MessageBox.TYPE_YESNO)
+        restart.setTitle('%s' % _('Reiniciar interfaz?'))
+        
+    def restart(self, confirmed):
+        if confirmed:
+            self.session.open(TryQuitMainloop, 3)
