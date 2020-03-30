@@ -1015,32 +1015,3 @@ def ObtenImagenes(self, enlace):
                 os.remove(self.picfile)
             except:
                 pass
-    
-def ActualizarPORDEDE(self):
-    Obtiene = Version()
-    OI = urllib.urlopen('https://www.dropbox.com/s/r83zbx0ltls3ubi/version?dl=1')
-    Leer = OI.read()
-    OI.close()
-    IV = re.findall(r'PORDEDE=(.*)', Leer)
-    VVersion = int(IV[0])
-
-    if Obtiene < VVersion:
-        print "Dropbox"
-        IN = urllib.urlopen('https://www.dropbox.com/s/gmgit3pqdwp4wpo/pordede.py?dl=1')
-        Leer1 = IN.read()
-        IN.close()
-
-        Actualizacion = re.findall(r'(.*)', Leer1)
-        FF = open(ARPORDEDE, 'w')
-        for lineas in Actualizacion:
-            L = lineas
-            FF.write(L)
-        FF.close
-        
-        if os.path.isfile(ARPORDEDE):
-            try:
-                os.remove(ARPORDEDEO)
-            except:
-                pass
-    else:
-        pass
