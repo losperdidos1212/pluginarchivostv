@@ -50,6 +50,7 @@ from Components.Input import Input
 from Screens.Standby import Standby
 from enigma import eDVBVolumecontrol
 from Components.config import config, ConfigBoolean, ConfigClock
+from megadede import Recap, NavegarPeliculas, Enlaces, Enlaces1, CompruebaLogin
 sys.path.append('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/Moduls')
 from TURKvodModuls import html_parser_moduls
 CHANNEL_NUMBER = nVars.CHANNEL_NUMBER
@@ -63,6 +64,8 @@ socket.setdefaulttimeout(NTIMEOUT)
 
 ############ Variables globales ####################
 Servidor = 0
+logeadoplusdede = 0
+logeoplusdede = 0
 CarpetaTMP = "/tmp/archivostv/"
 VersionActual = 101
 usuariopor = "florin2016"
@@ -142,7 +145,7 @@ class iptv_streamse():
         self.ar_id_end = 0
         self.clear_url = ''
         self.my_favorites = []
-        self.img_loader = False
+        self.img_loader = True
         self.images_tmp_path = '/tmp'
         self.moviefolder = '/hdd/movie'
         self.meldung = ''
@@ -281,7 +284,12 @@ class iptv_streamse():
                 xml = self._request(url, send_mac)
             else:
                 tree = ElementTree()
-                xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/' + url)
+                if url.find("/tmp/") != -1:
+                    xml = tree.parse(url)
+                    print "Deberia haber cargado la lista ya..."
+                    print "Deberia haber cargado la lista ya..."
+                else:
+                    xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/' + url)
             if xml:
                 self.next_page_url = ''
                 self.next_page_text = ''
@@ -306,6 +314,7 @@ class iptv_streamse():
                 for channel in xml.findall('channel'):
                     chan_counter = chan_counter + 1
                     name = channel.findtext('title').encode('utf-8')
+                    print name
                     tipo = "playlist"
                     if channel.findtext('tipo'):
                         tipo = channel.findtext('tipo').encode('utf-8')
@@ -319,11 +328,11 @@ class iptv_streamse():
                     img_src = ''
                     if description != None:
                         description = description.encode('utf-8')
-                        img_src_list = re.findall('img .*?src="(.*?)"', description)
+                        img_src_list = re.findall('src="(.*?)"', description)
                         if len(img_src_list) > 0:
                             img_src = img_src_list[0]
                         else:
-                            img_src_list = re.findall("img .*?src='(.*?)'", description)
+                            img_src_list = re.findall("src='(.*?)'", description)
                             if len(img_src_list) > 0:
                                 img_src = img_src_list[0]
                         description = description.replace('<br>', '\n')
@@ -335,6 +344,9 @@ class iptv_streamse():
                         text = re.compile('<[\\/\\!]*?[^<>]*?>')
                         description = text.sub('', description)
                         
+                    if channel.findtext('img_src'):
+                        img_src = channel.findtext('img_src').encode('utf-8')
+                    
                     stream_url = channel.findtext('stream_url')
                     if stream_url and self.use_rtmpw:
                         stream_url = stream_url.replace('rtmp', 'http://127.0.0.1:1234/?r=rtmp')
@@ -356,6 +368,7 @@ class iptv_streamse():
                      ts_stream,
                      tipo)
                     iptv_list_temp.append(chan_tulpe)
+                    
 
         except Exception as ex:
             print ex
@@ -1349,7 +1362,10 @@ class nPlaylist(Screen):
                 selected_channel = self.channel_list[self.index]
                 if selected_channel[7] != '':
                     if selected_channel[7].find('http') == -1:
-                        self.picfile = PLUGIN_PATH + '/img/playlist/' + selected_channel[7]
+                        if selected_channel[8].find('megadede') != -1:
+                            self.picfile = selected_channel[7]
+                        else:
+                            self.picfile = PLUGIN_PATH + '/img/playlist/' + selected_channel[7]
                         self.decodeImage()
                         print 'LOCAL DESCR IMG'
                     else:
@@ -1360,10 +1376,12 @@ class nPlaylist(Screen):
                             m.update(selected_channel[7])
                             cover_md5 = m.hexdigest()
                             self.picfile = '%s/%s.jpg' % (STREAMS.images_tmp_path, cover_md5)
+                            
                         if os.path.exists(self.picfile) == False or STREAMS.img_loader == False:
                             downloadPage(selected_channel[7], self.picfile).addCallback(self.image_downloaded)
                         else:
                             self.decodeImage()
+                            
                 if selected_channel[2] != None:
                     description = selected_channel[2]
                     description_2 = description.split(' #-# ')
@@ -1485,13 +1503,98 @@ class nPlaylist(Screen):
 
     def ok_checked(self):
         try:
+            global logeadoplusdede
+            global logeoplusdede
+            
             if self.temp_index > -1:
                 self.index = self.temp_index
             selected_channel = STREAMS.iptv_list[self.index]
+            nombre = selected_channel[1]
             stream_url = selected_channel[4]
             playlist_url = selected_channel[5]
+            imagen = selected_channel[7]
             tipo = selected_channel[11]
-            print "Este es el tipo: " + tipo
+            
+            if tipo.find('megadede') != -1:
+                from megadede import CompruebaLogin
+                
+                Comp = CompruebaLogin(self)
+                
+                if Comp == False:
+                    logeadoplusdede = 1
+                    logeoplusdede = 1
+
+                try:
+                    if logeadoplusdede == 0 and logeoplusdede == 0:
+                        LOGIIN = Recap(self, usuariopor, contrasenapor, 0, selected_channel)
+                        if LOGIIN != None:
+                            self.session.open(MessageBox,_("El login a fallado asegurate de que has puesto bien el usuario y contraseña"), MessageBox.TYPE_INFO, timeout=8)
+                            return
+                            
+                        print "Aqui llego justo despues del primer login"
+                        print "Este es el LOGIIN: " + str(LOGIIN)
+                        logeoplusdede = 1
+                    else:
+                        #LLego aqui cuando SI estoy logeado..."
+                        pass
+                        
+                except Exception as er:
+                    print er
+                    print er
+                    print er
+                    logeadoplusdede = 0
+                    logeoplusdede = 0
+                    self.session.open(MessageBox,_("El login a PLUSDEDE a fallado por:\n\n" + str(er)) + "\n\n Intentalo de nuevo entrando en la seccion otra vez.", MessageBox.TYPE_INFO, timeout=8)
+                    
+                if logeadoplusdede == 0 and logeoplusdede == 1:
+                    logeadoplusdede = 1
+                    return
+                else:
+                    pass
+                    
+                
+                if logeadoplusdede == 1 and logeoplusdede == 1:
+                    #Entramos en la comprobación de login.
+                    Compruebalo = CompruebaLogin(self)
+                    
+                    if Compruebalo == False:
+                        print "Se supone que estamos logeados aqui"
+                        pass # Aqui estamos logeados asi que lo dejamos pasar
+                    else:
+                        logeadoplusdede = 0
+                        logeoplusdede = 0
+                        
+                        LOGIIN = Recap(self, usuariopor, contrasenapor, 0, selected_channel)
+                        if LOGIIN != None:
+                            self.session.open(MessageBox,_("El login a fallado asegurate de que has puesto bien el usuario y contrasena"), MessageBox.TYPE_INFO, timeout=8)
+                            return
+                            
+                        logeadoplusdede = 1
+                        logeoplusdede = 1
+                        
+                        print "Este es el LOGIIN2: " + str(LOGIIN)
+                        #STREAMS.get_list(playlist_url)
+                        return
+
+                if tipo.find('megadedeEstrenos') != -1 and nombre.find('Navegar en Estrenos') != -1 or tipo.find('megadedeEstrenos') != -1 and nombre.find('Pagina Siguiente') != -1:
+                    from megadede import NavegarEstrenos
+                    
+                    LanzaEstrenos = NavegarEstrenos(self, selected_channel[1], selected_channel[10])
+                    STREAMS.get_list(LanzaEstrenos)
+                    self.update_channellist()
+                    return
+                
+                if tipo.find('megadedeSeries') != -1 and nombre.find('Navegar en Series') != -1 or tipo.find('megadedeSeries') != -1 and nombre.find('Pagina Siguiente') != -1:
+                    from megadede import NavegarSeries
+                    return
+                    
+                if tipo.find('megadedePelis') != -1 and nombre.find('Navegar en Peliculas') != -1 or tipo.find('megadedePelis') != -1 and nombre.find('Pagina Siguiente') != -1:
+                    from megadede import NavegarPeliculas
+                    LanzaPelis = NavegarPeliculas(self, selected_channel[1], selected_channel[10])
+                    STREAMS.get_list(LanzaPelis)
+                    self.update_channellist()
+                    return
+            
             if playlist_url != None:
                 STREAMS.get_list(playlist_url)
                 self.update_channellist()
@@ -1824,6 +1927,8 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
             print 'update COVER'
 
     def decodeImage(self):
+        print "o es el de coveR=?"
+        print "o es el de coveR=?"
         try:
             x = self['cover'].instance.size().width()
             y = self['cover'].instance.size().height()
@@ -2008,10 +2113,6 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
                 self.vod_url = str(self.vod_url)
                 self.vod_url = self.parse_url()
                 if self.vod_url.find('cloud') != -1:
-                    print 'Esto si lo ejecuto'
-                    print 'Esto si lo ejecuto'
-                    print 'Esto si lo ejecuto'
-                    print 'Esto si lo ejecuto'
                     from cloud import Sacarpelicula
                     XX = Sacarpelicula(self.vod_url)
                     self.vod_url = XX
