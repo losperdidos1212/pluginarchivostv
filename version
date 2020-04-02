@@ -1,5 +1,5 @@
-version=102
+version=103
 
-@|@| Añadido scraper de megadede para ver pelis y series |@|@
-@@@@ Añadido actualizador del plugin @@@@
-=@=@ Quitado servidor de OpenLoad, han cerrado la pagina @=@=
+@|@| Arreglado un problema de skins en las Busquedas |@|@
+@@@@ Añadido scraper de megadede para ver pelis y series @@@@
+=@=@ Añadido actualizador del plugin @=@=
