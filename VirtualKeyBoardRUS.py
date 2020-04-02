@@ -348,6 +348,267 @@ class TecladoVirtualPlusdede(Screen):
 
     def showActiveKey(self):
         self.buildVirtualKeyBoard(self.selectedKey)
+        
+class TecladoVirtualA(Screen):
+    skin = '\n\t<screen name="TecladoVirtualA"  position="center,center" size="560,350" zPosition="99" title="Teclado Virtual" flags="wfNoBorder">\n\t\t<ePixmap pixmap="skin_default/vkey_text.png" position="9,35" zPosition="-4" size="542,52" alphatest="on" />\n\t\t<widget name="header" position="10,10" size="500,20" font="Regular;20" transparent="1" noWrap="1" />\n\t\t<widget name="text" position="12,35" size="536,44" font="Regular;40" transparent="1" noWrap="1" halign="right" />\n\t\t<widget name="list" position="10,100" size="540,225" selectionDisabled="1" transparent="0" />\n\t</screen>'
+
+    def __init__(self, session, title = '', text = ''):
+        Screen.__init__(self, session)
+        self.skin = TecladoVirtualA.skin
+        self.keys_list = []
+        self.shiftkeys_list = []
+        self.lang = language.getLanguage()
+        self.keys_list = [[u'EXIT',
+          u'1',
+          u'2',
+          u'3',
+          u'4',
+          u'5',
+          u'6',
+          u'7',
+          u'8',
+          u'9',
+          u'0',
+          u'BACKSPACE'],
+         [u'q',
+          u'w',
+          u'e',
+          u'r',
+          u't',
+          u'y',
+          u'u',
+          u'i',
+          u'o',
+          u'p',
+          u'?',
+          u'#'],
+         [u'a',
+          u's',
+          u'd',
+          u'f',
+          u'g',
+          u'h',
+          u'j',
+          u'k',
+          u'l',
+          u"'",
+          u';',
+          u':'],
+         [u'>',
+          u'z',
+          u'x',
+          u'c',
+          u'v',
+          u'b',
+          u'n',
+          u'm',
+          u'<',
+          u'+',
+          u'-',
+          u'CLEAR'],
+         [u'SHIFT', u'SPACE', u'OK']]
+        self.shiftkeys_list = [[u'EXIT',
+          u'!',
+          u'"',
+          u'\xa7',
+          u'$',
+          u'%',
+          u'&',
+          u'/',
+          u'(',
+          u')',
+          u'=',
+          u'BACKSPACE'],
+         [u'Q',
+          u'W',
+          u'E',
+          u'R',
+          u'T',
+          u'Z',
+          u'U',
+          u'I',
+          u'O',
+          u'P',
+          u'?',
+          u'#'],
+         [u'A',
+          u'S',
+          u'D',
+          u'F',
+          u'G',
+          u'H',
+          u'J',
+          u'K',
+          u'L',
+          u"'",
+          u';',
+          u':'],
+         [u'>',
+          u'Y',
+          u'X',
+          u'C',
+          u'V',
+          u'B',
+          u'N',
+          u'M',
+          u'<',
+          u'+',
+          u'_',
+          u'CLEAR'],
+         [u'SHIFT', u'SPACE', u'OK']]
+        self.shiftMode = False
+        self.text = text
+        self.selectedKey = 0
+        self['header'] = Label(title)
+        self['text'] = Label(self.text)
+        self['list'] = VirtualKeyBoardList([])
+        self['actions'] = ActionMap(['OkCancelActions', 'WizardActions', 'ColorActions'], {'ok': self.okClicked,
+         'cancel': self.exit,
+         'left': self.left,
+         'right': self.right,
+         'up': self.up,
+         'down': self.down,
+         'red': self.exit,
+         'yellow': self.backClicked,
+         'green': self.ok,
+         'blue': self.shiftClicked}, -2)
+        self.onLayoutFinish.append(self.buildVirtualKeyBoard)
+        self.max_key = 47 + len(self.keys_list[4])
+
+    def shiftClicked(self):
+        if self.shiftMode:
+            self.shiftMode = False
+        else:
+            self.shiftMode = True
+        self.buildVirtualKeyBoard(self.selectedKey)
+
+    def buildVirtualKeyBoard(self, selectedKey = 0):
+        list = []
+        if self.shiftMode:
+            self.k_list = self.shiftkeys_list
+            for keys in self.k_list:
+                if selectedKey < 12 and selectedKey > -1:
+                    list.append(VirtualKeyBoardEntryComponent(keys, selectedKey, True))
+                else:
+                    list.append(VirtualKeyBoardEntryComponent(keys, -1, True))
+                selectedKey -= 12
+
+        else:
+            self.k_list = self.keys_list
+            for keys in self.k_list:
+                if selectedKey < 12 and selectedKey > -1:
+                    list.append(VirtualKeyBoardEntryComponent(keys, selectedKey))
+                else:
+                    list.append(VirtualKeyBoardEntryComponent(keys, -1))
+                selectedKey -= 12
+
+        self['list'].setList(list)
+
+    def backClicked(self):
+        self.text = self['text'].getText()
+        self.text = unicode(self.text)[:-1]
+        self.text = self.text.encode('utf-8')
+        self['text'].setText(self.text)
+
+    def okClicked(self):
+        if self.shiftMode:
+            list = self.shiftkeys_list
+        else:
+            list = self.keys_list
+        selectedKey = self.selectedKey
+        text = None
+        for x in list:
+            if selectedKey < 12:
+                if selectedKey < len(x):
+                    text = x[selectedKey]
+                break
+            else:
+                selectedKey -= 12
+
+        if text is None:
+            return
+        else:
+            text = text.encode('utf-8')
+            if text == 'EXIT':
+                self.close(None)
+            elif text == 'BACKSPACE':
+                self.text = self['text'].getText()
+                self.text = unicode(self.text)[:-1]
+                self.text = self.text.encode('utf-8')
+                self['text'].setText(self.text)
+            elif text == 'CLEAR':
+                self.text = ''
+                self['text'].setText(self.text)
+            elif text == 'SHIFT':
+                if self.shiftMode:
+                    self.shiftMode = False
+                else:
+                    self.shiftMode = True
+                self.buildVirtualKeyBoard(self.selectedKey)
+            elif text == 'SPACE':
+                self.text += ' '
+                self['text'].setText(self.text)
+            elif text == 'OK':
+                self.close(self['text'].getText())
+            else:
+                self.text = self['text'].getText()
+                self.text += text
+                self['text'].setText(self.text)
+            return
+
+    def ok(self):
+        self.close(self['text'].getText())
+
+    def exit(self):
+        self.close(None)
+        return
+
+    def left(self):
+        self.selectedKey -= 1
+        if self.selectedKey == -1:
+            self.selectedKey = 11
+        elif self.selectedKey == 11:
+            self.selectedKey = 23
+        elif self.selectedKey == 23:
+            self.selectedKey = 35
+        elif self.selectedKey == 35:
+            self.selectedKey = 47
+        elif self.selectedKey == 47:
+            self.selectedKey = self.max_key
+        self.showActiveKey()
+
+    def right(self):
+        self.selectedKey += 1
+        if self.selectedKey == 12:
+            self.selectedKey = 0
+        elif self.selectedKey == 24:
+            self.selectedKey = 12
+        elif self.selectedKey == 36:
+            self.selectedKey = 24
+        elif self.selectedKey == 48:
+            self.selectedKey = 36
+        elif self.selectedKey > self.max_key:
+            self.selectedKey = 48
+        self.showActiveKey()
+
+    def up(self):
+        self.selectedKey -= 12
+        if self.selectedKey < 0 and self.selectedKey > self.max_key - 60:
+            self.selectedKey += 48
+        elif self.selectedKey < 0:
+            self.selectedKey += 60
+        self.showActiveKey()
+
+    def down(self):
+        self.selectedKey += 12
+        if self.selectedKey > self.max_key and self.selectedKey > 59:
+            self.selectedKey -= 60
+        elif self.selectedKey > self.max_key:
+            self.selectedKey -= 48
+        self.showActiveKey()
+
+    def showActiveKey(self):
+        self.buildVirtualKeyBoard(self.selectedKey)
 
 
 class VirtualKeyBoardRUS_FIXED(Screen):

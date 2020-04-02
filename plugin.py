@@ -28,7 +28,7 @@ from Screens.Console import Console
 import re
 import urllib2
 from twisted.web.client import downloadPage
-from VirtualKeyBoardRUS import VirtualKeyBoardRUS_FIXED
+from VirtualKeyBoardRUS import VirtualKeyBoardRUS_FIXED, TecladoVirtualA
 from enigma import eAVSwitch
 from operator import itemgetter
 from Components.AVSwitch import AVSwitch
@@ -51,6 +51,8 @@ from Screens.Standby import Standby
 from enigma import eDVBVolumecontrol
 from Components.config import config, ConfigBoolean, ConfigClock
 from megadede import Recap, NavegarPeliculas, Enlaces, Enlaces1, CompruebaLogin
+from mediaitem import *
+from proloader import *
 sys.path.append('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/Moduls')
 from TURKvodModuls import html_parser_moduls
 CHANNEL_NUMBER = nVars.CHANNEL_NUMBER
@@ -71,6 +73,8 @@ VersionActual = 101
 usuariopor = "florin2016"
 contrasenapor = "florin2016"
 user_agent_default = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+URLFINAL = ""
+PICONREPRODUCTOR = ""
 
 def Actualizador():
     global VersionActual
@@ -92,9 +96,6 @@ def Actualizador():
 
     VersionMayor = re.findall(r'version=(.*)', Respuesta)
     VersionMayor = int(VersionMayor[0])
-    
-    print VersionActual
-    print VersionMayor
     
     if VersionActual < VersionMayor:
         print "Version nueva detectada, iniciando actualizador."
@@ -287,7 +288,6 @@ class iptv_streamse():
                 if url.find("/tmp/") != -1:
                     xml = tree.parse(url)
                     print "Deberia haber cargado la lista ya..."
-                    print "Deberia haber cargado la lista ya..."
                 else:
                     xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/' + url)
             if xml:
@@ -352,6 +352,7 @@ class iptv_streamse():
                         stream_url = stream_url.replace('rtmp', 'http://127.0.0.1:1234/?r=rtmp')
                         if stream_url.find('rtmp') > 0:
                             name = name + ' [RTMPGW on]'
+                    historial = channel.findtext('historial')
                     playlist_url = channel.findtext('playlist_url')
                     category_id = channel.findtext('category_id')
                     ts_stream = channel.findtext('ts_stream')
@@ -366,7 +367,8 @@ class iptv_streamse():
                      description4playlist_html,
                      protected,
                      ts_stream,
-                     tipo)
+                     tipo,
+                     historial)
                     iptv_list_temp.append(chan_tulpe)
                     
 
@@ -1267,6 +1269,9 @@ class nPlaylist(Screen):
         try:
             x = self['poster'].instance.size().width()
             y = self['poster'].instance.size().height()
+            
+            y = 500
+
             picture = self.picfile
             picload = self.picload
             sc = AVSwitch().getFramebufferScale()
@@ -1415,10 +1420,13 @@ class nPlaylist(Screen):
     def update_channellist(self):
         print '--------------------- UPDATE CHANNEL LIST ----------------------------------------'
         if STREAMS.xml_error != '':
-            print '### update_channellist ######URL#############'
-            print STREAMS.clear_url
-            error_text = 'PLAYLIST ERROR:\n%s\n\nURL:\n%s' % (STREAMS.xml_error, STREAMS.clear_url.encode('utf-8'))
-            self.session.open(MessageBox, error_text, type=MessageBox.TYPE_ERROR, timeout=30)
+            if STREAMS.clear_url.encode('utf-8').find('megadede.com') != -1:
+                pass
+            else:
+                print '### update_channellist ######URL#############'
+                print STREAMS.clear_url
+                error_text = 'PLAYLIST ERROR:\n%s\n\nURL:\n%s' % (STREAMS.xml_error, STREAMS.clear_url.encode('utf-8'))
+                self.session.open(MessageBox, error_text, type=MessageBox.TYPE_ERROR, timeout=30)
         self['chminus'].setText('')
         self['chplus'].setText('')
         self['stop'].setText('')
@@ -1514,6 +1522,7 @@ class nPlaylist(Screen):
             playlist_url = selected_channel[5]
             imagen = selected_channel[7]
             tipo = selected_channel[11]
+            historial = selected_channel[12]
             
             if tipo.find('megadede') != -1:
                 from megadede import CompruebaLogin
@@ -1576,6 +1585,63 @@ class nPlaylist(Screen):
                         #STREAMS.get_list(playlist_url)
                         return
 
+                
+                if tipo.find('megadedeLinks') != -1:
+                    from megadede import Enlaces1
+                    try:
+                        MediaItm = CMediaItem()
+                        
+                        MediaItm.name = selected_channel[1]
+                        MediaItm.URL = selected_channel[5]
+                        MediaItm.thumb = selected_channel[7]
+                        MediaItm.processor = selected_channel[4]
+                        
+                        LanzaXV = Enlaces1(self, MediaItm.URL)
+
+                        MediaItm.URL = LanzaXV
+                        cargapro = CURLLoader(self.session)
+                        Resul = cargapro.geturl_processor(MediaItm)
+
+                        if Resul[0] == 0:
+                            if Resul[1] != "":
+                                playlist_url = None
+                                stream_url = Resul[1]
+                                global URLFINAL
+                                URLFINAL = Resul[1]
+                        elif Resul[0] == 1:
+                            self.session.open(MessageBox,(str(Resul[2])), MessageBox.TYPE_ERROR)
+                        else:
+                            pass
+                    except Exception as er:
+                        print er
+                        self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
+                
+                if tipo.find('megadedeEnlaces') != -1:
+                    from megadede import Enlaces
+                    try:
+                        global PICONREPRODUCTOR
+                        PICONREPRODUCTOR = imagen
+                        LanzaEnlaces = Enlaces(self, selected_channel[1], selected_channel[5], selected_channel[8], historial)
+                        
+                        if LanzaEnlaces == None:
+                            self.session.open(MessageBox,("Ha ocurrido un error:\nNo hay enlaces para la pelicula que estás intentando ver.\nPrueba otro día."), MessageBox.TYPE_ERROR)
+                            return
+                        
+                        STREAMS.get_list(LanzaEnlaces)
+                        self.update_channellist()
+                    except Exception as er:
+                        print er
+                        self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
+                        
+                if tipo.find('megadedeCapitulos') != -1:
+                    from megadede import Capitulos
+                    print selected_channel
+                    imgs = (selected_channel[7], selected_channel[8])
+                    LanzaCapitulos = Capitulos(self, selected_channel[1], selected_channel[5], imgs, historial)
+                    STREAMS.get_list(LanzaCapitulos)
+                    self.update_channellist()
+                    return
+
                 if tipo.find('megadedeEstrenos') != -1 and nombre.find('Navegar en Estrenos') != -1 or tipo.find('megadedeEstrenos') != -1 and nombre.find('Pagina Siguiente') != -1:
                     from megadede import NavegarEstrenos
                     
@@ -1586,6 +1652,18 @@ class nPlaylist(Screen):
                 
                 if tipo.find('megadedeSeries') != -1 and nombre.find('Navegar en Series') != -1 or tipo.find('megadedeSeries') != -1 and nombre.find('Pagina Siguiente') != -1:
                     from megadede import NavegarSeries
+                    try:
+                        LanzaSeries = NavegarSeries(self, selected_channel[1], selected_channel[10])
+                        if type(LanzaSeries) == []:
+                            if LanzaSeries[0] == 1:
+                                self.session.open(MessageBox,(str(LanzaSeries[1])), MessageBox.TYPE_ERROR)
+                        else:
+                            STREAMS.get_list(LanzaSeries)
+                            self.update_channellist()
+                    except Exception as er:
+                        print er
+                        self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
+                        
                     return
                     
                 if tipo.find('megadedePelis') != -1 and nombre.find('Navegar en Peliculas') != -1 or tipo.find('megadedePelis') != -1 and nombre.find('Pagina Siguiente') != -1:
@@ -1593,6 +1671,11 @@ class nPlaylist(Screen):
                     LanzaPelis = NavegarPeliculas(self, selected_channel[1], selected_channel[10])
                     STREAMS.get_list(LanzaPelis)
                     self.update_channellist()
+                    return
+                    
+                if tipo.find('megadedeBusca') != -1:
+                    self.busquedass = ["Peliculas", "Series"]
+                    Lanzalo = self.session.openWithCallback(self.devuelveBusquedaMegadede, Busquedas, opciones=self.busquedass)
                     return
             
             if playlist_url != None:
@@ -1608,6 +1691,95 @@ class nPlaylist(Screen):
             print 'ok_checked'
 
         return
+        
+    def devuelveBusquedaMegadede(self, posicion = None):
+        try:
+            if posicion > -1:
+                if posicion == 0:
+                    self.OPT = 0
+                    bs = self.session.openWithCallback(self.BuscandoMegadede, TecladoVirtualA, title=_('Escribe tu Peli:'), text='')
+                elif posicion == 1:
+                    self.OPT = 1
+                    bs = self.session.openWithCallback(self.BuscandoMegadede, TecladoVirtualA, title=_('Escribe tu Serie:'), text='')
+                elif posicion == 2:
+                    self.OPT = 2
+                    bs = self.session.openWithCallback(self.BuscandoMegadede, TecladoVirtualA, title=_('Escribe tu Documental:'), text='')
+                elif posicion == 3:
+                    self.OPT = 3
+                    bs = self.session.openWithCallback(self.BuscandoMegadede, TecladoVirtualA, title=_('Escribe tu TVShow:'), text='')
+                elif posicion == 4:
+                    return 4
+                    
+                    
+        except Exception as er:
+            print "Error de devuelveBusquedaPlusdede: " + str(er)
+            print "Error de devuelveBusquedaPlusdede: " + str(er)
+            print "Error de devuelveBusquedaPlusdede: " + str(er)
+            
+    def BuscandoMegadede(self, Texto):
+        if Texto == "":
+            self.session.open(MessageBox,_("Tienes que escribir lo que buscas... cancelando busqueda."), MessageBox.TYPE_INFO)
+            self.close(None)
+        else:
+            from megadede import Buscar
+            Resultadoo = Texto
+
+            if self.OPT == 0: #Pelis plusdede
+                try:
+                    LanzaXV = Buscar(self, Resultadoo, self.OPT)
+                    if type(LanzaXV) == []:
+                        if LanzaXV[0] == 1:
+                            self.session.open(MessageBox,(str(LanzaXV[1])), MessageBox.TYPE_ERROR)
+                    else:
+                        sURL = LanzaXV
+                        STREAMS.get_list(sURL)
+                        self.update_channellist()
+                except Exception as er:
+                    print "Error en BuscandoMegadede: " + str(er)
+                    print "Error en BuscandoMegadede: " + str(er)
+            elif self.OPT == 1: #Series plusdede
+                try:
+                    LanzaXV = Buscar(self, Resultadoo, self.OPT)
+                    if type(LanzaXV) == []:
+                        if LanzaXV[0] == 1:
+                            self.session.open(MessageBox,(str(LanzaXV[1])), MessageBox.TYPE_ERROR)
+                    else:
+                        sURL = LanzaXV
+                        STREAMS.get_list(sURL)
+                        self.update_channellist()
+                except Exception as er:
+                    print "Error en BuscandoMegadede: " + str(er)
+                    print "Error en BuscandoMegadede: " + str(er)
+            elif self.OPT == 2: #Documentales pordede
+                try:
+                    LanzaXV = Buscar(self, Resultadoo, self.OPT)
+                    if type(LanzaXV) == []:
+                        if LanzaXV[0] == 1:
+                            self.session.open(MessageBox,(str(LanzaXV[1])), MessageBox.TYPE_ERROR)
+                    else:
+                        sURL = LanzaXV
+                        STREAMS.get_list(sURL)
+                        self.update_channellist()
+                except Exception as er:
+                    print "Error en BuscandoMegadede: " + str(er)
+                    print "Error en BuscandoMegadede: " + str(er)
+            elif self.OPT == 3: #TVshows pordede
+                try:
+                    LanzaXV = Buscar(self, Resultadoo, self.OPT)
+                    if type(LanzaXV) == []:
+                        if LanzaXV[0] == 1:
+                            self.session.open(MessageBox,(str(LanzaXV[1])), MessageBox.TYPE_ERROR)
+                    else:
+                        sURL = LanzaXV
+                        STREAMS.get_list(sURL)
+                        self.update_channellist()
+                except Exception as er:
+                    print "Error en BuscandoMegadede: " + str(er)
+                    print "Error en BuscandoMegadede: " + str(er)
+            else:
+                pass
+        
+    
 
     def myPassInput(self):
         self.passwd_ok = True
@@ -1744,7 +1916,11 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
         else:
             frt = ''
             self.vod_entry = STREAMS.iptv_list[STREAMS.list_index]
-            self.vod_url = self.vod_entry[4]
+            if self.vod_entry[5].find('megadede') != -1:
+                global URLFINAL
+                self.vod_url = URLFINAL
+            else:
+                self.vod_url = self.vod_entry[4]
             self.title = self.vod_entry[1]
             self.descr = self.vod_entry[2]
             string = '%s%s %s%s %sd%s' % (sew,
@@ -1905,12 +2081,24 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
         try:
             vod_entry = STREAMS.iptv_list[STREAMS.list_index]
             self['cover'].instance.setPixmapFromFile(PLUGIN_PATH + '/img/clear.png')
+            
+            if vod_entry[5].find('megadede') != -1:
+                global PICONREPRODUCTOR
+                self.picfile = PICONREPRODUCTOR
+                self.decodeImage()
+                return
+            
             if self.vod_entry[3] != '':
                 if vod_entry[3].find('http') == -1:
                     self.picfile = PLUGIN_PATH + '/img/playlist/' + vod_entry[3]
                     self.decodeImage()
                     print 'LOCAL IMG VOD'
                 else:
+                    if vod_entry[5].find('megadede') != -1:
+                        global PICONREPRODUCTOR
+                        self.picfile = PICONREPRODUCTOR
+                        self.decodeImage()
+                        return
                     if STREAMS.img_loader == False:
                         self.picfile = '%s/nstream_tmp_pic.jpg' % STREAMS.images_tmp_path
                     else:
@@ -1922,16 +2110,16 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
                         downloadPage(self.vod_entry[3], self.picfile).addCallback(self.image_downloaded).addErrback(self.image_error)
                     else:
                         self.decodeImage()
+
         except Exception as ex:
             print ex
             print 'update COVER'
 
     def decodeImage(self):
-        print "o es el de coveR=?"
-        print "o es el de coveR=?"
         try:
             x = self['cover'].instance.size().width()
             y = self['cover'].instance.size().height()
+            
             picture = self.picfile
             picload = self.picload
             sc = AVSwitch().getFramebufferScale()
@@ -2713,3 +2901,28 @@ class AjustesPluginArchivosTV(Screen):
     def restart(self, confirmed):
         if confirmed:
             self.session.open(TryQuitMainloop, 3)
+            
+class Busquedas(Screen):
+
+    skin = """
+                <screen name="Busquedas" position="center,center" size="600,330" title="Que buscas" >
+                    <widget name="lista" position="20,20" size="500,200" />
+                </screen>
+           """
+
+    def __init__(self, session, opciones = None):
+        self.skin = Busquedas.skin
+        
+        Screen.__init__(self, session)
+        
+        self['actions'] = HelpableActionMap(self, 'SelectorCalidad', {'back': self.exit,
+         'ok': self.ok}, -1)
+
+        self['lista'] = MenuList(opciones)
+
+    def ok(self):
+        self.close(self['lista'].l.getCurrentSelectionIndex())
+
+    def exit(self):
+        self.close(None)
+        return

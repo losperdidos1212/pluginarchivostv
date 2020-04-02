@@ -68,11 +68,9 @@ def CompruebaLogin(self):
     
     if data.find('Escribe los números de la imagen') == -1:
         #No lo encuentra, asi que estamos logeados.
-        print "Compruebalo no"
         return False
     else:
         print data
-        print "Compruebalo si"
         #Si lo encuentra, asi que estamos deslogeados.
         return True
 
@@ -219,8 +217,6 @@ def Recap2(respuesta):
                 OTRO = 1
                 Testt = NavegarSeries(Sesion, Mediaitem[1], Mediaitem[2])
                 
-            #Testt = Sesion.open(inavi.Principal, Mediaitem.URL, Mediaitem.name)
-            print "Se supone que debe abrirla :S"
             return True
         else:
             print "Login no correcto"
@@ -290,7 +286,7 @@ def Enlaces1(self, enlace):
     req = urllib2.Request(url)
     req.add_header('User-Agent', user_agent_default)
     req.add_header('Referer', ENN)
-    Abrir = urllib2.urlopen(req)
+    Abrir = OP(req)
     data = Abrir.read()
     Abrir.close()
     
@@ -303,15 +299,13 @@ def Enlaces1(self, enlace):
     req = urllib2.Request(url)
     req.add_header('User-Agent', user_agent_default)
     #req.add_header('Referer', ENN)
-    Abrir = urllib2.urlopen(req)
+    Abrir = OP(req)
     data = Abrir.read()
     Abrir.close()
     
     Devuelve = Abrir.geturl()
     
-    print "Este es el geturl: " + Devuelve
-    print "Este es el geturl: " + Devuelve
-    print "Este es el geturl: " + Devuelve
+    #print "Este es el geturl: " + Devuelve
     
     if Abrir.geturl().find("gamovideo") != -1:
         CC = re.findall(r'(\.html)', Abrir.geturl())
@@ -327,7 +321,7 @@ def Enlaces1(self, enlace):
     
     return Devuelve
         
-def Enlaces(self, Nam, URLL, THUMB):
+def Enlaces(self, Nam, URLL, THUMB, historial):
     try:
         NN = Nam
         NN = NN.replace("¡","")
@@ -354,16 +348,18 @@ def Enlaces(self, Nam, URLL, THUMB):
         NN = NN.replace("Ñ","N")
         NN = NN.replace("&ntilde;","n")
         NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
         ENN = URLL
         IMG = THUMB
 
-        Categ = RutaTMP + NN + ".txt"
+        Categ = RutaTMP + NN + ".xml"
         
         url = ENN
         req = urllib2.Request(url)
         req.add_header('User-Agent',user_agent_default)
         req.add_header('Referer','https://www.megadede.com/pelis')
-        Abrir = urllib2.urlopen(req)
+        Abrir = OP(req)
         data = Abrir.read()
         Abrir.close()
         
@@ -383,7 +379,7 @@ def Enlaces(self, Nam, URLL, THUMB):
         req = urllib2.Request(BotonEnlaces)
         req.add_header('User-Agent', user_agent_default)
         req.add_header('Referer', url)
-        Abrir = urllib2.urlopen(req)
+        Abrir = OP(req)
         data = Abrir.read()
         Abrir.close()
         
@@ -396,7 +392,8 @@ def Enlaces(self, Nam, URLL, THUMB):
         resultados = re.compile(patron, re.DOTALL).findall(data)
 
         FF = open(Categ, 'w')
-        FF.write('version=5\n\nbackground=default\nlogo=none\ntitle=' + NN + '\n\n')
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + NN + ']]></playlist_name>\n\n')
+        Conteo = 0
         
         for match in resultados:
             idioma = re.findall(r'<img src="https://cdn\d+.megadede.com/images/flags/(.*?)\.png"', match)
@@ -410,24 +407,44 @@ def Enlaces(self, Nam, URLL, THUMB):
             Procesador = ""
             
             if idioma.find("spanish") != -1:
+                Conteo = Conteo + 1
+            
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[Ver en " + idioma.encode('utf8') + " " + calidad + "]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="' + imag.encode("utf8") + '">]]></description>\n')
+                FF.write('    <playlist_url><![CDATA[' + Enlace + ']]></playlist_url>\n')
+            
                 if imag.find("vidoza") != -1:
                     Procesador = "http://ps3plusteam.ddns.net/teamps3plus/pro/vidoza.txt"
-                    FF.write("type=poraa\nname=Ver en " + idioma + " " + calidad +"\nthumb=" + imag.encode("utf8") + "\nURL=" + Enlace + "\nprocessor=" + Procesador +"\n\n")
+                    FF.write('    <stream_url><![CDATA[' + Procesador + ']]></stream_url>\n')
+                    FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/vidoza.png]]></img_src>\n')
                 elif imag.find("nowvideo") != -1:
                     Procesador = "http://ps3plusteam.ddns.net/teamps3plus/pro/nowvideo.txt"
-                    FF.write("type=poraa\nname=Ver en " + idioma + " " + calidad +"\nthumb=" + imag.encode("utf8") + "\nURL=" + Enlace + "\nprocessor=" + Procesador +"\n\n")
+                    FF.write('    <stream_url><![CDATA[' + Procesador + ']]></stream_url>\n')
+                    FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/nowvideo.png]]></img_src>\n')
                 elif imag.find("gamo") != -1:
                     Procesador = "http://ps3plusteam.ddns.net/teamps3plus/props3/gamo.txt"
-                    FF.write("type=poraa\nname=Ver en " + idioma + " " + calidad + "\nthumb=" + imag.encode("utf8") + "\nURL=" + Enlace + "\nprocessor=" + Procesador +"\n\n")
+                    FF.write('    <stream_url><![CDATA[' + Procesador + ']]></stream_url>\n')
+                    FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/gamovideo.png]]></img_src>\n')
                 elif imag.find("youtube") != -1:
                     Procesador = "http://ps3plusteam.ddns.net/teamps3plus/pro/youtube"
-                    FF.write("type=poraa\nname=Ver en " + idioma + " " + calidad +"\nthumb=" + imag.encode("utf8") + "\nURL=" + Enlace + "\nprocessor=" + Procesador +"\n\n")
+                    FF.write('    <stream_url><![CDATA[' + Procesador + ']]></stream_url>\n')
+                    FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/youtube.png]]></img_src>\n')
                 else:
                     pass
+                    
+                FF.write('    <tipo><![CDATA[megadedeLinks]]></tipo>\n')
+                FF.write('</channel>\n\n')
+                    
             else:
                 pass
-                
+
+        FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[' + historial + ']]></prev_page_url>\n</items>')
         FF.close()
+        
+        if Conteo == 0:
+            return None
+            
 
         return Categ
         
@@ -437,7 +454,7 @@ def Enlaces(self, Nam, URLL, THUMB):
         print "Error: "+ str(er) + " En Enlaces"
         return [1, er]
     
-def Capitulos(self, Nam, URLL, THUMB):
+def Capitulos(self, Nam, URLL, THUMB, historial):
     try:
         ArchivoLog = RutaTMP + "Log.txt"
         NN = Nam
@@ -464,22 +481,24 @@ def Capitulos(self, Nam, URLL, THUMB):
         NN = NN.replace("ñ","n")
         NN = NN.replace("&ntilde;","n")
         NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
         ENN = URLL
         IMG = THUMB
 
 
-        Categ = RutaTMP + NN + "1.plx"
+        Categ = RutaTMP + NN + "1.xml"
         
         url = ENN
         req = urllib2.Request(url)
         req.add_header('User-Agent',user_agent_default)
         req.add_header('Referer','https://www.megadede.com/series')
-        Abrir = urllib2.urlopen(req)
+        Abrir = OP(req)
         data = Abrir.read()
         Abrir.close()
         
         FF = open(Categ, 'w')
-        FF.write("version=5\n\nbackground=default\nlogo=none\ntitle=" + NN + "\n\n")
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + NN + ']]></playlist_name>\n\n')
         
         BuscaTemporadas = re.findall(r'-header" > Temporada (.*?) <div class="check-season', data)
         
@@ -492,7 +511,14 @@ def Capitulos(self, Nam, URLL, THUMB):
                 BuscaTodo = re.findall(r'episode model.*href="(.*?)">\s+.+\s+.+class="num">(\d+)</span>\n\s+(.*?)\n', source)
                 
                 for enlace,episodio,nombre in BuscaTodo:
-                    FF.write("type=pora\nname=" + cuantas + "x" + episodio +"- " + nombre + "\nthumb=" + IMG + "\nURL=https://www.megadede.com" + enlace + "\ndescription=./description\n\n")
+                    FF.write("<channel>\n")
+                    FF.write("    <title><![CDATA[" + cuantas + "x" + episodio +"- " + nombre + "]]></title>\n")
+                    FF.write('    <description><![CDATA[' + str(IMG[1]) + ']]></description>\n')
+                    FF.write('    <playlist_url><![CDATA[https://www.megadede.com' + enlace + ']]></playlist_url>\n')
+                    FF.write('    <img_src><![CDATA[' + str(IMG[0]) + ']]></img_src>\n')
+                    FF.write('    <tipo><![CDATA[megadedeEnlaces]]></tipo>\n')
+                    FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
+                    FF.write('</channel>\n\n')
                 
             else:
                 tot = int(cuantas)
@@ -504,8 +530,16 @@ def Capitulos(self, Nam, URLL, THUMB):
                 BuscaTodo = re.findall(r'episode model.*href="(.*?)">\s+.+\s+.+class="num">(\d+)</span>\n\s+(.*?)\n', source)
                 
                 for enlace,episodio,nombre in BuscaTodo:
-                    FF.write("type=poraa\nname=" + cuantas + "x" + episodio +"- " + nombre + "\nthumb=" + IMG + "\nURL=https://www.megadede.com" + enlace + "\ndescription=./description\n\n")
-
+                    FF.write("<channel>\n")
+                    FF.write("    <title><![CDATA[" + cuantas + "x" + episodio +"- " + nombre + "]]></title>\n")
+                    FF.write('    <description><![CDATA[' + str(IMG[1]) + ']]></description>\n')
+                    FF.write('    <playlist_url><![CDATA[https://www.megadede.com' + enlace + ']]></playlist_url>\n')
+                    FF.write('    <img_src><![CDATA[' + str(IMG[0]) + ']]></img_src>\n')
+                    FF.write('    <tipo><![CDATA[megadedeEnlaces]]></tipo>\n')
+                    FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
+                    FF.write('</channel>\n\n')
+                    
+        FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[' + historial + ']]></prev_page_url>\n</items>')
         FF.close()
         #ArLog.close()
         
@@ -519,7 +553,6 @@ def Capitulos(self, Nam, URLL, THUMB):
         
 def NavegarEstrenos(self, Nam, Pagina):
     try:
-        print "Entramos en NavegarEstrenos"
         global opener
         global OTRO
         
@@ -544,6 +577,10 @@ def NavegarEstrenos(self, Nam, Pagina):
         NN = NN.replace("Ó","O")
         NN = NN.replace("ú","u")
         NN = NN.replace("Ú","U")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
         PAG = Pagina
         PG = PAG
         
@@ -600,6 +637,10 @@ def NavegarEstrenos(self, Nam, Pagina):
                 NN = NN.replace("Ó","O")
                 NN = NN.replace("ú","u")
                 NN = NN.replace("Ú","U")
+                NN = NN.replace("&ntilde;","n")
+                NN = NN.replace("&quot;","")
+                NN = NN.replace("'","")
+                NN = NN.replace("&#039;","")
                 IMAG = imagen
                 
                 ImgDefinitiva = ObtenImagenes(self, IMAG)
@@ -610,6 +651,8 @@ def NavegarEstrenos(self, Nam, Pagina):
                 FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
                 FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
                 FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[megadedeEnlaces]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ +']]></historial>\n')
                 FF.write('</channel>\n\n')
                 
             
@@ -630,23 +673,13 @@ def NavegarEstrenos(self, Nam, Pagina):
             if i == 2:
                 FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/tmp/archivostv/Navegar en Estrenos0.xml]]></prev_page_url>\n</items>')
             if i > 2:
+                i = i - 1
                 FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/tmp/archivostv/Pagina Siguiente' + str(i - 1) + '.xml]]></prev_page_url>\n</items>')
             
             
             FF.close()
             
             return Categ
-            
-            """
-            
-            if OTRO == 1:
-                global Sesion
-                global Mediaitem
-                OTRO = 0
-                Testt = Sesion.open(inavi.Principal, Categ, Mediaitem.name)
-            else:
-                return Categ
-            """
             
     except Exception as er:
         print "Error: "+ str(er) + " En NavegarEstrenos"
@@ -656,7 +689,6 @@ def NavegarEstrenos(self, Nam, Pagina):
     
 def NavegarPeliculas(self, Nam, Pagina):
     try:
-        print "Entramos en NavegarPeliculas"
         global opener
         global OTRO
         
@@ -681,10 +713,14 @@ def NavegarPeliculas(self, Nam, Pagina):
         NN = NN.replace("Ó","O")
         NN = NN.replace("ú","u")
         NN = NN.replace("Ú","U")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
         PAG = Pagina
         PG = PAG
         
-        Categ = RutaTMP + NN + str(PG) + ".txt"
+        Categ = RutaTMP + NN + str(PG) + ".xml"
         
         url = 'https://www.megadede.com/pelis/index/' + PAG + '?quality=2&year=1990%3B2020'
         PAG = int(PAG)
@@ -737,6 +773,10 @@ def NavegarPeliculas(self, Nam, Pagina):
                 NN = NN.replace("Ó","O")
                 NN = NN.replace("ú","u")
                 NN = NN.replace("Ú","U")
+                NN = NN.replace("&ntilde;","n")
+                NN = NN.replace("&quot;","")
+                NN = NN.replace("'","")
+                NN = NN.replace("&#039;","")
                 IMAG = imagen
                 
                 ImgDefinitiva = ObtenImagenes(self, IMAG)
@@ -746,6 +786,8 @@ def NavegarPeliculas(self, Nam, Pagina):
                 FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
                 FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
                 FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[megadedeEnlaces]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
                 FF.write('</channel>\n\n')
                 
             
@@ -765,6 +807,7 @@ def NavegarPeliculas(self, Nam, Pagina):
             if i == 2:
                 FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/tmp/archivostv/Navegar en Peliculas0.xml]]></prev_page_url>\n</items>')
             if i > 2:
+                i = i - 1
                 FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/tmp/archivostv/Pagina Siguiente' + str(i - 1) + '.xml]]></prev_page_url>\n</items>')
                 
             FF.close()
@@ -802,29 +845,35 @@ def NavegarSeries(self, Nam, Pagina):
         NN = NN.replace("Ó","O")
         NN = NN.replace("ú","u")
         NN = NN.replace("Ú","U")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
         PAG = Pagina
         PG = PAG
-        Categ = RutaTMP + NN + str(PG) + ".txt"
+        Categ = RutaTMP + NN + str(PG) + ".xml"
         
-        url='https://www.megadede.com/series/index/' + PAG + '?quality=2&year=1990%3B2018'
+        url='https://www.megadede.com/series/index/' + PAG + '?quality=2&year=1990%3B2020'
         PAG = int(PAG)
         
         req = urllib2.Request(url)
         req.add_header('User-Agent',user_agent_default)
         req.add_header('Referer','https://www.megadede.com/series')
-        Abrir = urllib2.urlopen(req)
+        Abrir = OP(req)
         data = Abrir.read()
         Abrir.close()
         
         Recopila = re.findall(r'href="(.*?)"\s.*title=".+\d\s+(.*?)"\s.+\n.+\n.+\n.+src="(.*?)"\s', data)
         
         if PAG == 0:
-            i = 30
+            i = 1
         else:
-            i = PAG+30
+            i = PAG+1
             
         FF = open(Categ, 'w')
-        FF.write("version=5\n\nbackground=default\nlogo=none\ntitle=" + NN + "\n\n")
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + NN + ']]></playlist_name>\n\n')
+            
+        Conteo = 0
         
         if Recopila == []:
             Mensaje = "Error","No hay mas resultados aqui."
@@ -832,6 +881,7 @@ def NavegarSeries(self, Nam, Pagina):
             return [1, Mensaje]
         else:
             for enlace,titulo,imagen in Recopila:
+                Conteo = Conteo + 1
                 ENLA = enlace
                 NN = titulo
                 NN = NN.replace("¡","")
@@ -854,21 +904,45 @@ def NavegarSeries(self, Nam, Pagina):
                 NN = NN.replace("Ó","O")
                 NN = NN.replace("ú","u")
                 NN = NN.replace("Ú","U")
+                NN = NN.replace("&ntilde;","n")
+                NN = NN.replace("&quot;","")
+                NN = NN.replace("'","")
+                NN = NN.replace("&#039;","")
                 IMAG = imagen
+                ImgDefinitiva = ObtenImagenes(self, IMAG)
                 
-                FF.write("type=poraa\nname=" + NN.encode('utf8') +"\nthumb=" + IMAG.encode('utf8') + "\nURL=" + ENLA + "\ndescription=./description\n\n")
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[" + NN.encode('utf8') + "]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
+                FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
+                FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[megadedeCapitulos]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
+                FF.write('</channel>\n\n')
                 
-            FF.write("type=porcc\nname=Pagina Siguiente\nthumb=http://ps3plusteam.ddns.net/ps3plus/images/letras/siguiente.png\nURL=http://\ninfotag=" + str(i) + "\n\n")
+                
+            if Conteo < 58:
+                pass
+            else:
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[Pagina Siguiente]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="http://ps3plusteam.ddns.net/ps3plus/images/letras/siguiente.png">]]>Avanza a la pagina siguiente para ver mas Series!</description>\n')
+                FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/siguiente.png]]></img_src>\n')
+                FF.write('    <ts_stream><![CDATA[' + str(i) + ']]></ts_stream>\n')
+                FF.write('    <tipo><![CDATA[megadedeSeries]]></tipo>\n')
+                FF.write('</channel>\n\n')
+                
+            if i == 1:
+                FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[megadede.xml]]></prev_page_url>\n</items>')
+            if i == 2:
+                FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/tmp/archivostv/Navegar en Series0.xml]]></prev_page_url>\n</items>')
+            if i > 2:
+                i = i - 1
+                FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/tmp/archivostv/Pagina Siguiente' + str(i - 1) + '.xml]]></prev_page_url>\n</items>')
             
             FF.close()
+            return Categ
             
-            if OTRO == 1:
-                global Sesion
-                global Mediaitem
-                OTRO = 0
-                Testt = Sesion.open(inavi.Principal, Categ, Mediaitem.name)
-            else:
-                return Categ
     except Exception as er:
         print "Error: "+ str(er) + " En NavegarSeries"
         print "Error: "+ str(er) + " En NavegarSeries"
@@ -878,7 +952,7 @@ def NavegarSeries(self, Nam, Pagina):
 def Buscar(self, Nombre, Tipo):
     try:
         OPT = Tipo
-        Categ = RutaTMP + Nombre + ".txt"
+        Categ = RutaTMP + Nombre + ".xml"
         Name = Nombre
         Name = Name.replace("/","")
         Name = Name.replace(":","")
@@ -903,7 +977,7 @@ def Buscar(self, Nombre, Tipo):
             req = urllib2.Request(url)
             req.add_header('User-Agent', user_agent_default)
             req.add_header('Referer', 'http://www.megadede.com/')
-            Abrir = urllib2.urlopen(req)
+            Abrir = OP(req)
             data = Abrir.read()
             Abrir.close()
             
@@ -914,7 +988,7 @@ def Buscar(self, Nombre, Tipo):
             req = urllib2.Request(url)
             req.add_header('User-Agent', user_agent_default)
             req.add_header('Referer', 'http://www.megadede.com/')
-            Abrir = urllib2.urlopen(req)
+            Abrir = OP(req)
             data = Abrir.read()
             Abrir.close()
             
@@ -926,7 +1000,7 @@ def Buscar(self, Nombre, Tipo):
             req = urllib2.Request(url)
             req.add_header('User-Agent', user_agent_default)
             req.add_header('Referer', 'http://www.pordede.com/index2.php')
-            Abrir = urllib2.urlopen(req)
+            Abrir = OP(req)
             data = Abrir.read()
             Abrir.close()
             
@@ -942,7 +1016,7 @@ def Buscar(self, Nombre, Tipo):
             req = urllib2.Request(url)
             req.add_header('User-Agent', user_agent_default)
             req.add_header('Referer', 'http://www.pordede.com/index2.php')
-            Abrir = urllib2.urlopen(req)
+            Abrir = OP(req)
             data = Abrir.read()
             Abrir.close()
             
@@ -961,17 +1035,33 @@ def Buscar(self, Nombre, Tipo):
             return [1, Mensaje]
             
         FF = open(Categ, 'w')
-        FF.write("version=5\n\nbackground=default\nlogo=none\ntitle=" + Nombre + "\n\n")
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[Buscando ' + Nombre + ']]></playlist_name>\n\n')
         
         for enlace,titulo,imagen in Resultados:
             EN = enlace
             TI = titulo
-            IM = imagen
+            IMAG = imagen
+            ImgDefinitiva = ObtenImagenes(self, IMAG)
+            
             
             if OPT == 1 and imagen.find('serie') != -1:
-                FF.write("type=poraa\nname=" + TI +"\nthumb=" + IM + "\nURL=" + EN + "\ndescription=./description\n\n")
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[" + TI.encode('utf8') + "]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
+                FF.write('    <playlist_url><![CDATA[' + EN + ']]></playlist_url>\n')
+                FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[megadedeCapitulos]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
+                FF.write('</channel>\n\n')
             elif OPT == 0 and imagen.find('peli') != -1:
-                FF.write("type=poraa\nname=" + TI +"\nthumb=" + IM + "\nURL=" + EN + "\ndescription=./description\n\n")
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[" + TI.encode('utf8') + "]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
+                FF.write('    <playlist_url><![CDATA[' + EN + ']]></playlist_url>\n')
+                FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[megadedeEnlaces]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
+                FF.write('</channel>\n\n')
             elif OPT == 2:
                 FF.write("type=poraa\nname=" + TI +"\nthumb=" + IM + "\nURL=http://www.pordede.com/docu/" + EN + "\ndescription=./description\n\n")
             elif OPT == 3:
@@ -979,12 +1069,13 @@ def Buscar(self, Nombre, Tipo):
             else:
                 pass
 
+        FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[megadede.xml]]></prev_page_url>\n</items>')
         FF.close()
             
         return Categ
     except Exception as er:
-        print "Error pordede en Busca: " + str(er)
-        print "Error pordede en Busca: " + str(er)
+        print "Error megadede en Busca: " + str(er)
+        print "Error megadede en Busca: " + str(er)
         return [1, er]
         
 def ObtenImagenes(self, enlace):
