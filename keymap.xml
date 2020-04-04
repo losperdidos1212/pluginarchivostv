@@ -55,4 +55,9 @@
 		<key id="KEY_PREVIOUS" mapto="prevAR" flags="m" />				 
 	</map>
 	
+	<map context="SelectorCalidad">
+		<key id="KEY_OK" mapto="ok" flags="m" />
+		<key id="KEY_EXIT" mapto="back" flags="m" />
+	</map>   
+	
 </keymap>

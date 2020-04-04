@@ -45,7 +45,12 @@
 </screen>
 
 <screen name ="AjustesPluginArchivosTV" position="center,center" size="1143,536 " backgroundColor="darkgrey" title="Actualizador" >
-	<widget name="list" position="965,450" size="166,80"  zPosition="0"/>
+	<widget name="list" position="965,450" size="170,80"  zPosition="0"/>
+	<widget name="NombreNews" position="313,20" size="689,68" zPosition="1" transparent="0" foregroundColor="#f4df8d" font="Regular; 40" text="  CAMBIOS DE LA VERSION" backgroundColor="darkgrey" /> \
+	<widget name="news" position="11,106" size="1120,334" zPosition="1" transparent="0" foregroundColor="#f4df8d" font="Regular;30" backgroundColor="darkgrey" />
+</screen>
+
+<screen name ="VentanaCambios" position="center,center" size="1143,536 " backgroundColor="darkgrey" title="INFO:" >
 	<widget name="NombreNews" position="313,20" size="689,68" zPosition="1" transparent="0" foregroundColor="#f4df8d" font="Regular; 40" text="  CAMBIOS DE LA VERSION" backgroundColor="darkgrey" /> \
 	<widget name="news" position="11,106" size="1120,334" zPosition="1" transparent="0" foregroundColor="#f4df8d" font="Regular;30" backgroundColor="darkgrey" />
 </screen>

@@ -69,7 +69,7 @@ Servidor = 0
 logeadoplusdede = 0
 logeoplusdede = 0
 CarpetaTMP = "/tmp/archivostv/"
-VersionActual = 101
+VersionActual = 105
 usuariopor = "florin2016"
 contrasenapor = "florin2016"
 user_agent_default = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
@@ -259,6 +259,9 @@ class iptv_streamse():
                 ###### Aqui empezare con el tema de scrapear paginas, como Megadede #################
                 tree = ElementTree()
                 xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/megadede.xml')
+            elif url.find('hdfull.comcom') != -1:
+                tree = ElementTree()
+                xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/hdfull.xml')
             elif url == None or url == '':
                 tree = ElementTree()
                 xml = tree.parse('/usr/lib/enigma2/python/Plugins/Extensions/archivostv/archivostv.xml')
@@ -828,7 +831,6 @@ def Start_iptv_palyer(session, **kwargs):
         session.open(AjustesPluginArchivosTV)
     
     elif Actualiza == False:
-        print "hasta aqui llegamos o no :SS"
         session.open(nPlaylist)
 
 
@@ -1367,7 +1369,7 @@ class nPlaylist(Screen):
                 selected_channel = self.channel_list[self.index]
                 if selected_channel[7] != '':
                     if selected_channel[7].find('http') == -1:
-                        if selected_channel[8].find('megadede') != -1:
+                        if selected_channel[8].find('megadede') != -1 or selected_channel[8].find('hdfull'):
                             self.picfile = selected_channel[7]
                         else:
                             self.picfile = PLUGIN_PATH + '/img/playlist/' + selected_channel[7]
@@ -1420,7 +1422,7 @@ class nPlaylist(Screen):
     def update_channellist(self):
         print '--------------------- UPDATE CHANNEL LIST ----------------------------------------'
         if STREAMS.xml_error != '':
-            if STREAMS.clear_url.encode('utf-8').find('megadede.com') != -1:
+            if STREAMS.clear_url.encode('utf-8').find('megadede.com') != -1 or STREAMS.clear_url.encode('utf-8').find('hdfull') != -1:
                 pass
             else:
                 print '### update_channellist ######URL#############'
@@ -1539,18 +1541,15 @@ class nPlaylist(Screen):
                         if LOGIIN != None:
                             self.session.open(MessageBox,_("El login a fallado asegurate de que has puesto bien el usuario y contraseña"), MessageBox.TYPE_INFO, timeout=8)
                             return
-                            
-                        print "Aqui llego justo despues del primer login"
-                        print "Este es el LOGIIN: " + str(LOGIIN)
+
                         logeoplusdede = 1
                     else:
                         #LLego aqui cuando SI estoy logeado..."
                         pass
                         
                 except Exception as er:
-                    print er
-                    print er
-                    print er
+                    print "Error: " + str(er) + " en CompruebaLogin PLUGIN"
+                    print "Error: " + str(er) + " en CompruebaLogin PLUGIN"
                     logeadoplusdede = 0
                     logeoplusdede = 0
                     self.session.open(MessageBox,_("El login a PLUSDEDE a fallado por:\n\n" + str(er)) + "\n\n Intentalo de nuevo entrando en la seccion otra vez.", MessageBox.TYPE_INFO, timeout=8)
@@ -1567,7 +1566,7 @@ class nPlaylist(Screen):
                     Compruebalo = CompruebaLogin(self)
                     
                     if Compruebalo == False:
-                        print "Se supone que estamos logeados aqui"
+                        print ""
                         pass # Aqui estamos logeados asi que lo dejamos pasar
                     else:
                         logeadoplusdede = 0
@@ -1580,11 +1579,8 @@ class nPlaylist(Screen):
                             
                         logeadoplusdede = 1
                         logeoplusdede = 1
-                        
-                        print "Este es el LOGIIN2: " + str(LOGIIN)
-                        #STREAMS.get_list(playlist_url)
-                        return
 
+                        return
                 
                 if tipo.find('megadedeLinks') != -1:
                     from megadede import Enlaces1
@@ -1613,7 +1609,8 @@ class nPlaylist(Screen):
                         else:
                             pass
                     except Exception as er:
-                        print er
+                        print "Error: " + str(er) + " en megadedeLinks PLUGIN"
+                        print "Error: " + str(er) + " en megadedeLinks PLUGIN"
                         self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
                 
                 if tipo.find('megadedeEnlaces') != -1:
@@ -1630,7 +1627,8 @@ class nPlaylist(Screen):
                         STREAMS.get_list(LanzaEnlaces)
                         self.update_channellist()
                     except Exception as er:
-                        print er
+                        print "Error: " + str(er) + " en megadedeEnlaces PLUGIN"
+                        print "Error: " + str(er) + " en megadedeEnlaces PLUGIN"
                         self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
                         
                 if tipo.find('megadedeCapitulos') != -1:
@@ -1661,7 +1659,8 @@ class nPlaylist(Screen):
                             STREAMS.get_list(LanzaSeries)
                             self.update_channellist()
                     except Exception as er:
-                        print er
+                        print "Error: " + str(er) + " en NavegarSeries PLUGIN"
+                        print "Error: " + str(er) + " en NavegarSeries PLUGIN"
                         self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
                         
                     return
@@ -1677,6 +1676,81 @@ class nPlaylist(Screen):
                     self.busquedass = ["Peliculas", "Series"]
                     Lanzalo = self.session.openWithCallback(self.devuelveBusquedaMegadede, Busquedas, opciones=self.busquedass)
                     return
+                    
+            if tipo.find('hdfull') != -1:
+                from hdfull import CompruebaLoginHD
+                
+                Comp = CompruebaLoginHD(self)
+                
+                if Comp == True:
+                    #Estamos logeados
+                    pass
+                else:
+                    try:
+                        from hdfull import Logear
+                        LOGIIN = Logear(self, 'plugine2', 'plugine2')
+                        if LOGIIN != None:
+                            self.session.open(MessageBox,_("El login a fallado asegurate de que has puesto bien el usuario y contraseña"), MessageBox.TYPE_INFO, timeout=8)
+                            return
+                            
+                    except Exception as er:
+                        print er
+                        print er
+                        print er
+                        self.session.open(MessageBox,_("El login a HDFULL a fallado por:\n\n" + str(er)) + "\n\n Intentalo de nuevo entrando en la seccion otra vez.", MessageBox.TYPE_INFO, timeout=8)
+                
+                if tipo.find('hdfullEstrenos') != -1 and nombre.find('Navegar en Estrenos') != -1 or tipo.find('hdfullEstrenos') != -1 and nombre.find('Pagina Siguiente') != -1:
+                    from hdfull import NavegarEstrenos
+                    
+                    LanzaEstrenos = NavegarEstrenos(self, selected_channel[1], selected_channel[10])
+                    STREAMS.get_list(LanzaEstrenos)
+                    self.update_channellist()
+                    return
+                    
+                if tipo.find('hdfullEnlaces') != -1:
+                    from hdfull import Enlaces
+                    try:
+                        global PICONREPRODUCTOR
+                        PICONREPRODUCTOR = imagen
+                        LanzaEnlaces = Enlaces(self, selected_channel[1], selected_channel[5], selected_channel[8], historial)
+                        
+                        if LanzaEnlaces == None:
+                            self.session.open(MessageBox,("Ha ocurrido un error:\nNo hay enlaces para la pelicula que estás intentando ver.\nPrueba otro día."), MessageBox.TYPE_ERROR)
+                            return
+                        
+                        STREAMS.get_list(LanzaEnlaces)
+                        self.update_channellist()
+                        return
+                    except Exception as er:
+                        print er
+                        self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
+                        
+                if tipo.find('hdfullLinks') != -1:
+                    try:
+                        MediaItm = CMediaItem()
+                        
+                        MediaItm.name = selected_channel[1]
+                        MediaItm.URL = selected_channel[5]
+                        MediaItm.thumb = selected_channel[7]
+                        MediaItm.processor = selected_channel[4]
+                        
+                        cargapro = CURLLoader(self.session)
+                        Resul = cargapro.geturl_processor(MediaItm)
+
+                        if Resul[0] == 0:
+                            if Resul[1] != "":
+                                playlist_url = None
+                                stream_url = Resul[1]
+                                global URLFINAL
+                                URLFINAL = Resul[1]
+                        elif Resul[0] == 1:
+                            self.session.open(MessageBox,(str(Resul[2])), MessageBox.TYPE_ERROR)
+                        else:
+                            pass
+                    except Exception as er:
+                        print er
+                        self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
+                        return
             
             if playlist_url != None:
                 STREAMS.get_list(playlist_url)
@@ -1916,7 +1990,7 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
         else:
             frt = ''
             self.vod_entry = STREAMS.iptv_list[STREAMS.list_index]
-            if self.vod_entry[5].find('megadede') != -1:
+            if self.vod_entry[5].find('megadede') != -1 or self.vod_entry[5].find('hdfull') != -1 or self.vod_entry[5].find('vidoza') != -1 or self.vod_entry[5].find('gamovideo') != -1:
                 global URLFINAL
                 self.vod_url = URLFINAL
             else:
@@ -2082,7 +2156,24 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
             vod_entry = STREAMS.iptv_list[STREAMS.list_index]
             self['cover'].instance.setPixmapFromFile(PLUGIN_PATH + '/img/clear.png')
             
+            if PICONREPRODUCTOR != "":
+                self.picfile = PICONREPRODUCTOR
+                self.decodeImage()
+                return
+            
             if vod_entry[5].find('megadede') != -1:
+                global PICONREPRODUCTOR
+                self.picfile = PICONREPRODUCTOR
+                self.decodeImage()
+                return
+                
+            if vod_entry[5].find('hdfull') != -1:
+                global PICONREPRODUCTOR
+                self.picfile = PICONREPRODUCTOR
+                self.decodeImage()
+                return
+                
+            if vod_entry[5].find('/tmp/') != -1:
                 global PICONREPRODUCTOR
                 self.picfile = PICONREPRODUCTOR
                 self.decodeImage()
@@ -2095,6 +2186,16 @@ class nVODplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
                     print 'LOCAL IMG VOD'
                 else:
                     if vod_entry[5].find('megadede') != -1:
+                        global PICONREPRODUCTOR
+                        self.picfile = PICONREPRODUCTOR
+                        self.decodeImage()
+                        return
+                    if vod_entry[5].find('hdfull') != -1:
+                        global PICONREPRODUCTOR
+                        self.picfile = PICONREPRODUCTOR
+                        self.decodeImage()
+                        return
+                    if vod_entry[5].find('/tmp/') != -1:
                         global PICONREPRODUCTOR
                         self.picfile = PICONREPRODUCTOR
                         self.decodeImage()
