@@ -1,5 +1,5 @@
-version=104
+version=105
 
-@|@| Arreglado un problema de skins en las Busquedas |@|@
-@@@@ Añadido scraper de megadede para ver pelis y series @@@@
-=@=@ Añadido actualizador del plugin @=@=
+@|@| Añadido scraper de hdfull de momento solo estrenos |@|@
+@@@@ Arreglado un problema de skins en las Busquedas @@@@
+=@=@ Añadido scraper de megadede para ver pelis y series @=@=
