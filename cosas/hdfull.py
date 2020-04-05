@@ -22,8 +22,8 @@ RUTACOOKIE = "/usr/lib/enigma2/python/Plugins/Extensions/archivostv/cosas/cookie
 RutaTMP = "/tmp/archivostv/"
 user_agent_default = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
 
-ARPORDEDE = RUTAPLUGIN+"hdfull.py"
-ARPORDEDEO = RUTAPLUGIN+"hdfull.pyo"
+ARPORDEDE = RUTAPLUGIN+"/cosas/hdfull.py"
+ARPORDEDEO = RUTAPLUGIN+"/cosas/hdfull.pyo"
 
 TKN = ""
 USR = ""
