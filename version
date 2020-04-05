@@ -1,5 +1,5 @@
-version=105
+version=106
 
-@|@| Añadido scraper de hdfull de momento solo estrenos |@|@
-@@@@ Arreglado un problema de skins en las Busquedas @@@@
-=@=@ Añadido scraper de megadede para ver pelis y series @=@=
+@|@| Cambios en el actualizador y añadido soporte del servidor uptobox |@|@
+@@@@ Añadido scraper de hdfull de momento solo estrenos @@@@
+=@=@ Arreglado un problema de skins en las Busquedas @=@=
