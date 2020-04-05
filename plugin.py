@@ -67,7 +67,7 @@ Servidor = 0
 logeadoplusdede = 0
 logeoplusdede = 0
 CarpetaTMP = "/tmp/archivostv/"
-VersionActual = 105
+VersionActual = 106
 usuariopor = "florin2016"
 contrasenapor = "florin2016"
 user_agent_default = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
@@ -1988,7 +1988,7 @@ class artvplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
         else:
             frt = ''
             self.vod_entry = STREAMS.iptv_list[STREAMS.list_index]
-            if self.vod_entry[5].find('megadede') != -1 or self.vod_entry[5].find('hdfull') != -1 or self.vod_entry[5].find('vidoza') != -1 or self.vod_entry[5].find('gamovideo') != -1:
+            if self.vod_entry[5].find('megadede') != -1 or self.vod_entry[5].find('hdfull') != -1 or self.vod_entry[5].find('vidoza') != -1 or self.vod_entry[5].find('gamovideo') != -1 or self.vod_entry[5].find('uptobox') != -1:
                 global URLFINAL
                 self.vod_url = URLFINAL
             else:
