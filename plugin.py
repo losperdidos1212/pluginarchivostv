@@ -88,7 +88,7 @@ def Actualizador():
         global Servidor
         Servidor = 2
         print "Servidor 2"
-        Buscaver = urllib2.urlopen("https://raw.githubusercontent.com/archivostvteam/pluginarchivostv/master/version")
+        Buscaver = urllib2.urlopen("https://raw.githubusercontent.com/archivostvteam/updatepluginarchivostv/master/version")
         Respuesta = Buscaver.read()
         Buscaver.close()
 
@@ -1696,6 +1696,31 @@ class artvPlaylist(Screen):
                         print er
                         print er
                         self.session.open(MessageBox,_("El login a HDFULL a fallado por:\n\n" + str(er)) + "\n\n Intentalo de nuevo entrando en la seccion otra vez.", MessageBox.TYPE_INFO, timeout=8)
+                        
+                if tipo.find('hdfullSeries') != -1 and nombre.find('Navegar en Series') != -1 or tipo.find('hdfullSeries') != -1 and nombre.find('Pagina Siguiente') != -1:
+                    from hdfull import NavegarSeries
+                    try:
+                        LanzaSeries = NavegarSeries(self, selected_channel[1], selected_channel[10])
+                        if type(LanzaSeries) == []:
+                            if LanzaSeries[0] == 1:
+                                self.session.open(MessageBox,(str(LanzaSeries[1])), MessageBox.TYPE_ERROR)
+                        else:
+                            STREAMS.get_list(LanzaSeries)
+                            self.update_channellist()
+                    except Exception as er:
+                        print "Error: " + str(er) + " en NavegarSeries PLUGIN"
+                        print "Error: " + str(er) + " en NavegarSeries PLUGIN"
+                        self.session.open(MessageBox,("Ha ocurrido un error:\n" + str(er) + "\nIntentalo de nuevo."), MessageBox.TYPE_ERROR)
+                        
+                    return
+                    
+                if tipo.find('hdfullAZ') != -1:
+                    from hdfull import NavegarAZ
+                    
+                    LanzaEstrenos = NavegarAZ(self, selected_channel[1], selected_channel[10])
+                    STREAMS.get_list(LanzaEstrenos)
+                    self.update_channellist()
+                    return
                 
                 if tipo.find('hdfullEstrenos') != -1 and nombre.find('Navegar en Estrenos') != -1 or tipo.find('hdfullEstrenos') != -1 and nombre.find('Pagina Siguiente') != -1:
                     from hdfull import NavegarEstrenos
