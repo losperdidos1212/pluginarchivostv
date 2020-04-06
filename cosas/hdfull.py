@@ -475,3 +475,132 @@ def ObtenImagenes(self, enlace):
                 os.remove(self.picfile)
             except:
                 pass
+######################################################
+def NavegarSeries(self, Nam, Pagina):
+    try:
+        global opener
+        global OTRO
+        
+        NN = Nam
+        NN = NN.replace("¡","")
+        NN = NN.replace("¿","")
+        NN = NN.replace("?","")
+        NN = NN.replace(":","")
+        NN = NN.replace("º","")
+        NN = NN.replace("ª","")
+        NN = NN.replace("\"","")
+        NN = NN.replace("\'","")
+        NN = NN.replace("(","")
+        NN = NN.replace(")","")
+        NN = NN.replace("á","a")
+        NN = NN.replace("Á","A")
+        NN = NN.replace("é","e")
+        NN = NN.replace("É","E")
+        NN = NN.replace("í","i")
+        NN = NN.replace("Í","I")
+        NN = NN.replace("ó","o")
+        NN = NN.replace("Ó","O")
+        NN = NN.replace("ú","u")
+        NN = NN.replace("Ú","U")
+        NN = NN.replace("ñ","n")
+        NN = NN.replace("Ñ","N")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
+        PAG = Pagina
+        PG = PAG
+        
+        Categ = RutaTMP + NN + str(PG) + ".xml"
+        
+        url = 'https://hdfull.io/series'
+        PAG = int(PAG)
+        
+        req = urllib2.Request(url)
+        req.add_header('User-Agent',user_agent_default)
+        req.add_header('Referer','https://hdfull.io/')
+        Abrir = OP(req)
+        data = Abrir.read()
+        Abrir.close()
+        
+        Recopila = re.findall(r'href="(.*?)".+\s+.+src="(.*?)"\s.+title="(.*?)"\s\/>\s+<\/a>', data)
+        IDS = re.findall(r'setFavorite\(\d+, (.*?).+st', data)
+        
+        if PAG == 0:
+            i = 1
+        else:
+            i = PAG+1
+            
+        FF = open(Categ, 'w')
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + NN + ']]></playlist_name>\n\n')
+        
+        Conteo = 0
+        
+        if Recopila == []:
+            Mensaje = "Error","No hay mas resultados aqui."
+            FF.close()
+            return [1, Mensaje]
+        else:
+            for enlace,imagen,titulo in Recopila:
+                ID = IDS[Conteo]
+                Conteo = Conteo + 1
+                ENLA = enlace
+                if '/serie' in ENLA or "/tags-tv" in ENLA:
+                    ENLA += "###" + ID + ";1"
+                else:
+                    ENLA += "###" + ID + ";2"
+                NN = titulo
+                NN = NN.replace("¡","")
+                NN = NN.replace("¿","")
+                NN = NN.replace("?","")
+                NN = NN.replace(":","")
+                NN = NN.replace("º","")
+                NN = NN.replace("ª","")
+                NN = NN.replace("\"","")
+                NN = NN.replace("\'","")
+                NN = NN.replace("(","")
+                NN = NN.replace(")","")
+                NN = NN.replace("á","a")
+                NN = NN.replace("Á","A")
+                NN = NN.replace("é","e")
+                NN = NN.replace("É","E")
+                NN = NN.replace("í","i")
+                NN = NN.replace("Í","I")
+                NN = NN.replace("ó","o")
+                NN = NN.replace("Ó","O")
+                NN = NN.replace("ú","u")
+                NN = NN.replace("Ú","U")
+                NN = NN.replace("ñ","n")
+                NN = NN.replace("Ñ","N")
+                NN = NN.replace("&ntilde;","n")
+                NN = NN.replace("&quot;","")
+                NN = NN.replace("'","")
+                NN = NN.replace("&#039;","")
+                IMAG = imagen
+                
+                ImgDefinitiva = ObtenImagenes(self, IMAG)
+                
+                #FF.write("type=poraa\nname=" + NN.encode('utf8') +"\nthumb=" + IMAG + "\nURL=" + ENLA + "\ndescription=./description\n\n")
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[" + NN.encode('utf8') + "]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
+                FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
+                FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[hdfullEnlaces]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ +']]></historial>\n')
+                FF.write('</channel>\n\n')
+                
+            
+            FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/cosas/hdfull.xml]]></prev_page_url>\n</items>')
+            FF.close()
+            
+            return Categ
+            
+    except Exception as er:
+        print "Error: "+ str(er) + " En NavegarSeries HDFULL"
+        print "Error: "+ str(er) + " En NavegarSeries HDFULL"
+        print "Error: "+ str(er) + " En NavegarSeries HDFULL"
+        return [1, er]
+        
+def NavegarAZ(self, Nam, URLL = "", THUMB = "", historial = ""):
+    print ""

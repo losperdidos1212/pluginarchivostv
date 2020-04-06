@@ -34,6 +34,7 @@
 <ts_stream><![CDATA[0]]></ts_stream>
 <tipo><![CDATA[hdfullPelis]]></tipo>
 </channel>
+-->
 
 <channel>       
 <title><![CDATA[Navegar en Series]]></title>
@@ -44,7 +45,14 @@
 <ts_stream><![CDATA[0]]></ts_stream>
 <tipo><![CDATA[hdfullSeries]]></tipo>
 </channel>
--->
+
+<channel>       
+<title><![CDATA[Series A-Z]]></title>
+<logo_30x30></logo_30x30>
+<description><![CDATA[<img src="http://ps3plusteam.ddns.net/ps3plus/images/letras/taquis.jpg">Todo tipo de series]]></description>
+<playlist_url><![CDATA[/cosas/Series_AZ_HDFULL.xml]]></playlist_url>
+<buffer_kb>30000</buffer_kb>
+</channel>
 
 
 
