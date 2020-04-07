@@ -766,10 +766,13 @@ def web_info(message):
 
 
 def Start_iptv_palyer(session, **kwargs):
+    global ARSHAVIR_PARSER
     global URL
+    global YOUTUBE
     global VERSION
     global STREAMS
     global HW_INFO
+    global GOSHA_PARSER
     print '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
     print '######################################################################'
     print '#######--------------- START archivostv v%d ---------------#######' % VERSION
@@ -791,7 +794,13 @@ def Start_iptv_palyer(session, **kwargs):
     if STREAMS.ar_start:
         eAVSwitch.getInstance().setAspectRatio(STREAMS.ar_id_start)
         print 'setAspectRatio(STREAMS.ar_id_start)'
-   
+    try:
+        YOUTUBE = youtube_url()
+        GOSHA_PARSER = gosha_parsers()
+        ARSHAVIR_PARSER = arshavir_parsers()
+    except Exception as ex:
+        print ex
+        print 'PARSER ERROR'
 
     if STREAMS.use_rtmpw:
         try:
@@ -2536,6 +2545,8 @@ class artvplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
             self.vod_url = STREAMS.playhack
         print '++++++++++parse_url+++++++++++'
         try:
+            self.vod_url = GOSHA_PARSER.get_parsed_link(self.vod_url)
+            self.vod_url = ARSHAVIR_PARSER.get_parsed_link(self.vod_url)
             url = self.vod_url
             self.film_quality = None
             video_host = ''
@@ -2604,7 +2615,20 @@ class artvplayer(Screen, InfoBarBase, IPTVInfoBarShowHide, InfoBarSeek, InfoBarA
             print 'ERROR+++++++++++++++++parse_url++++++++++++++++++++++ERROR'
             print ex
 
-       
+        if self.vod_url.find('youtube') > -1:
+            youtube = YOUTUBE.get_youtube_link2(self.vod_url)
+            if youtube[0]:
+                self.error_message = youtube[0]
+                self.vod_url = 'none'
+            else:
+                self.vod_url = youtube[1]
+                self.title = self.title + ' [YT:' + YOUTUBE.quality + ']'
+        if self.vod_url.find('VIZOR') > -1:
+            url = self.uppod_decode(self.vod_url[5:], 'vizor')
+            url = url[:-1]
+            self.vod_url = url
+        debug(self.vod_url, '#### self.vod_url ####')
+        return self.vod_url
 
     def uppod_decode(self, param, server):
         loc_3 = [0,
