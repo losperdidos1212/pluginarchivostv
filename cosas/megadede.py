@@ -1043,6 +1043,8 @@ def NavegarSeries(self, Nam, Pagina):
             FF.close()
             return [1, Mensaje]
         else:
+            print "Entramos en el for?"
+            print "Entramos en el for?"
             for enlace,titulo,imagen in Recopila:
                 Conteo = Conteo + 1
                 ENLA = enlace
@@ -1075,6 +1077,9 @@ def NavegarSeries(self, Nam, Pagina):
                 NN = NN.replace("&#039;","")
                 IMAG = imagen
                 ImgDefinitiva = ObtenImagenes(self, IMAG)
+
+                if ImgDefinitiva == None:
+                    ImgDefinitiva = ObtenImagenes(self, 'http://www.index-dvd.com/covers/600/elcuriosocasodebenjamin-600a.jpg')
                 
                 FF.write("<channel>\n")
                 FF.write("    <title><![CDATA[" + NN.encode('utf8') + "]]></title>\n")
