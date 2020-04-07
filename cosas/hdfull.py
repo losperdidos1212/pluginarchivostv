@@ -530,7 +530,7 @@ def NavegarSeries(self, Nam, Pagina):
         Abrir.close()
         
         Recopila = re.findall(r'href="(.*?)".+\s+.+src="(.*?)"\s.+title="(.*?)"\s\/>\s+<\/a>', data)
-        IDS = re.findall(r'setFavorite\(\d+, (.*?).+st', data)
+        IDS = re.findall(r'setFavorite\(\d+, (.*?), \d', data)
         
         if PAG == 0:
             i = 1
@@ -592,7 +592,7 @@ def NavegarSeries(self, Nam, Pagina):
                 FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
                 FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
                 FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
-                FF.write('    <tipo><![CDATA[hdfullEnlaces]]></tipo>\n')
+                FF.write('    <tipo><![CDATA[hdfullCapitulos]]></tipo>\n')
                 FF.write('    <historial><![CDATA[' + Categ +']]></historial>\n')
                 FF.write('</channel>\n\n')
                 
@@ -777,12 +777,17 @@ def Capitulos(self, Nam, URLL = "", THUMB = "", historial = "", temporada = ""):
         
         FF = open(Categ, 'w')
         
+        print data
+        
         for episode in data:
 
             language = episode['languages']
             tempo = episode['season']
             episodio = episode['episode']
-            titulo = episode['title']['es'].decode('utf8')
+            if episode['title']['es'] == "":
+                titulo = ""
+            else:
+                titulo = str(episode['title']['es'].decode('utf8'))
             titulo = titulo.replace('\xc3\xb1','n')
             titulo = titulo.replace('\xc3\x81','A')
             titulo = titulo.replace('\xc3\xa1','a')
@@ -798,7 +803,7 @@ def Capitulos(self, Nam, URLL = "", THUMB = "", historial = "", temporada = ""):
                 FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + titulo + ']]></playlist_name>\n\n')
             
             FF.write("<channel>\n")
-            FF.write("    <title><![CDATA[" + temporada + "x" + episodio +" - " + titulo + "]]></title>\n")
+            FF.write("    <title><![CDATA[" + temporada + "x" + episodio + " " + titulo + "]]></title>\n")
             FF.write('    <description><![CDATA[]]></description>\n')
             FF.write('    <playlist_url><![CDATA[' + URLL + '/episodio-' + episodio + ']]></playlist_url>\n')
             FF.write('    <img_src><![CDATA[' + str(THUMB) + ']]></img_src>\n')
