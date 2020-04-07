@@ -777,8 +777,6 @@ def Capitulos(self, Nam, URLL = "", THUMB = "", historial = "", temporada = ""):
         
         FF = open(Categ, 'w')
         
-        print data
-        
         for episode in data:
 
             language = episode['languages']
