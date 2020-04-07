@@ -1,5 +1,5 @@
-version=106
+version=107
 
-@|@| Cambios en el actualizador y añadido soporte del servidor uptobox |@|@
-@@@@ Añadido scraper de hdfull de momento solo estrenos @@@@
-=@=@ Arreglado un problema de skins en las Busquedas @=@=
+@|@| Agregado soporte basico en series a hdfull, de A-Z, tarda un poco, paciencia |@|@
+@@@@ Corregido un error en las series megadede @@@@
+=@=@ Cambios en el actualizador y añadido soporte del servidor uptobox @=@=
