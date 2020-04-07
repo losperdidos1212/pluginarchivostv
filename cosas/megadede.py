@@ -1043,8 +1043,6 @@ def NavegarSeries(self, Nam, Pagina):
             FF.close()
             return [1, Mensaje]
         else:
-            print "Entramos en el for?"
-            print "Entramos en el for?"
             for enlace,titulo,imagen in Recopila:
                 Conteo = Conteo + 1
                 ENLA = enlace
