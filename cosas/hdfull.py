@@ -113,18 +113,12 @@ def Logear(self, usuario, contra):
         NameToken = GetName[0]
         Token = GetToken[0]
         
-        print "Este es el nombre: " + str(NameToken)
-        print "Este es el Token: " + str(Token)
-        
         url = 'https://hdfull.io/'
         post = str(NameToken) + '=' + str(Token) + '&username=' + USR + '&password=' + PSW + '&action=login'
         
         req = urllib2.Request(url)
         req.add_header('User-Agent', user_agent_default)
-        #req.add_header('Accept', '*/*')
         req.add_header('Referer', 'https://hdfull.io/')
-        #req.add_header('X-Requested-With', 'XMLHttpRequest')
-        #req.add_header('X-CSRF-TOKEN', TKN)
         Abrir = OP(req, data=post)
         data = Abrir.read()
         Abrir.close()
@@ -135,9 +129,9 @@ def Logear(self, usuario, contra):
         
         return XXX
     except Exception as er:
-        print "Error: "+ str(er) + " En Logear"
-        print "Error: "+ str(er) + " En Logear"
-        print "Error: "+ str(er) + " En Logear"
+        print "Error: "+ str(er) + " En Logear HDFULL"
+        print "Error: "+ str(er) + " En Logear HDFULL"
+        print "Error: "+ str(er) + " En Logear HDFULL"
         return [1, er]
         
 def NavegarEstrenos(self, Nam, Pagina):
@@ -366,6 +360,18 @@ def Enlaces(self, Nam, URLL = "", THUMB = "", historial = ""):
         if embed == 'd':
             option = "Descargar"
             option1 = 2
+            
+            if idioma == "ESP":
+                if url.find('uptobox') != -1:
+                    Conteo = Conteo + 1
+                    FF.write("<channel>\n")
+                    FF.write("    <title><![CDATA[Ver en gamovideo " + NN.encode('utf8') + " " + calidad + "]]></title>\n")
+                    FF.write('    <description><![CDATA[' + IMG + ']]></description>\n')
+                    FF.write('    <playlist_url><![CDATA[' + url + ']]></playlist_url>\n')
+                    FF.write('    <stream_url><![CDATA[http://ps3plusteam.ddns.net/teamps3plus/pro/uptobox.txt]]></stream_url>\n')
+                    FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/uptobox.png]]></img_src>\n')
+                    FF.write('    <tipo><![CDATA[hdfullLinks]]></tipo>\n')
+                    FF.write('</channel>\n\n') 
         else:
             option = "Ver"
             option1 = 1
@@ -392,7 +398,7 @@ def Enlaces(self, Nam, URLL = "", THUMB = "", historial = ""):
                     FF.write('    <stream_url><![CDATA[http://ps3plusteam.ddns.net/teamps3plus/props3/gamo.txt]]></stream_url>\n')
                     FF.write('    <img_src><![CDATA[http://ps3plusteam.ddns.net/ps3plus/images/letras/gamovideo.png]]></img_src>\n')
                     FF.write('    <tipo><![CDATA[hdfullLinks]]></tipo>\n')
-                    FF.write('</channel>\n\n') 
+                    FF.write('</channel>\n\n')
                      
     FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[' + historial + ']]></prev_page_url>\n</items>')
     
@@ -602,5 +608,302 @@ def NavegarSeries(self, Nam, Pagina):
         print "Error: "+ str(er) + " En NavegarSeries HDFULL"
         return [1, er]
         
-def NavegarAZ(self, Nam, URLL = "", THUMB = "", historial = ""):
-    print ""
+def NavegarAZ(self, Nam, URLL = "", Pagina = "", historial = ""):
+    try:
+        global opener
+        global OTRO
+        
+        NN = Nam
+        NN = NN.replace("¡","")
+        NN = NN.replace("¿","")
+        NN = NN.replace("?","")
+        NN = NN.replace(":","")
+        NN = NN.replace("º","")
+        NN = NN.replace("ª","")
+        NN = NN.replace("\"","")
+        NN = NN.replace("\'","")
+        NN = NN.replace("(","")
+        NN = NN.replace(")","")
+        NN = NN.replace("á","a")
+        NN = NN.replace("Á","A")
+        NN = NN.replace("é","e")
+        NN = NN.replace("É","E")
+        NN = NN.replace("í","i")
+        NN = NN.replace("Í","I")
+        NN = NN.replace("ó","o")
+        NN = NN.replace("Ó","O")
+        NN = NN.replace("ú","u")
+        NN = NN.replace("Ú","U")
+        NN = NN.replace("ñ","n")
+        NN = NN.replace("Ñ","N")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
+        
+        Categ = RutaTMP + NN + "1.xml"
+        
+        url = URLL
+        req = urllib2.Request(url)
+        req.add_header('User-Agent',user_agent_default)
+        req.add_header('Referer','https://hdfull.io/')
+        Abrir = OP(req)
+        data = Abrir.read()
+        Abrir.close()
+        
+        Recopila = re.findall(r'href="(.*?)".+\s+.+src="(.*?)"\s.+title="(.*?)"\s\/>\s+<\/a>', data)
+        IDS = re.findall(r'setFavorite\(\d+, (.*?), \d', data)
+            
+        FF = open(Categ, 'w')
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + NN + ']]></playlist_name>\n\n')
+        
+        Conteo = 0
+        
+        if Recopila == []:
+            Mensaje = "Error","No hay mas resultados aqui."
+            FF.close()
+            return [1, Mensaje]
+        else:
+            for enlace,imagen,titulo in Recopila:
+                ID = IDS[Conteo]
+                Conteo = Conteo + 1
+                ENLA = enlace
+                if '/serie' in ENLA or "/tags-tv" in ENLA:
+                    ENLA += "###" + ID + ";1"
+                else:
+                    ENLA += "###" + ID + ";2"
+                NN = titulo
+                NN = NN.replace("¡","")
+                NN = NN.replace("¿","")
+                NN = NN.replace("?","")
+                NN = NN.replace(":","")
+                NN = NN.replace("º","")
+                NN = NN.replace("ª","")
+                NN = NN.replace("\"","")
+                NN = NN.replace("\'","")
+                NN = NN.replace("(","")
+                NN = NN.replace(")","")
+                NN = NN.replace("á","a")
+                NN = NN.replace("Á","A")
+                NN = NN.replace("é","e")
+                NN = NN.replace("É","E")
+                NN = NN.replace("í","i")
+                NN = NN.replace("Í","I")
+                NN = NN.replace("ó","o")
+                NN = NN.replace("Ó","O")
+                NN = NN.replace("ú","u")
+                NN = NN.replace("Ú","U")
+                NN = NN.replace("ñ","n")
+                NN = NN.replace("Ñ","N")
+                NN = NN.replace("&ntilde;","n")
+                NN = NN.replace("&quot;","")
+                NN = NN.replace("'","")
+                NN = NN.replace("&#039;","")
+                IMAG = imagen
+                
+                ImgDefinitiva = ObtenImagenes(self, IMAG)
+                
+                #FF.write("type=poraa\nname=" + NN.encode('utf8') +"\nthumb=" + IMAG + "\nURL=" + ENLA + "\ndescription=./description\n\n")
+                FF.write("<channel>\n")
+                FF.write("    <title><![CDATA[" + NN.encode('utf8') + "]]></title>\n")
+                FF.write('    <description><![CDATA[<img src="' + IMAG + '">]]></description>\n')
+                FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
+                FF.write('    <img_src><![CDATA[' + ImgDefinitiva + ']]></img_src>\n')
+                FF.write('    <tipo><![CDATA[hdfullCapitulos]]></tipo>\n')
+                FF.write('    <historial><![CDATA[' + Categ +']]></historial>\n')
+                FF.write('</channel>\n\n')
+                
+            
+            FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[/cosas/Series_AZ_HDFULL.xml]]></prev_page_url>\n</items>')
+            FF.close()
+            
+            return Categ
+            
+    except Exception as er:
+        print "Error: "+ str(er) + " En NavegarAZ HDFULL"
+        print "Error: "+ str(er) + " En NavegarAZ HDFULL"
+        print "Error: "+ str(er) + " En NavegarAZ HDFULL"
+        return [1, er]
+        
+def Capitulos(self, Nam, URLL = "", THUMB = "", historial = "", temporada = ""):
+    try:
+        global opener
+        global OTRO
+        
+        NN = Nam
+        NN = NN.replace("¡","")
+        NN = NN.replace("¿","")
+        NN = NN.replace("?","")
+        NN = NN.replace(":","")
+        NN = NN.replace("º","")
+        NN = NN.replace("ª","")
+        NN = NN.replace("\"","")
+        NN = NN.replace("\'","")
+        NN = NN.replace("(","")
+        NN = NN.replace(")","")
+        NN = NN.replace("á","a")
+        NN = NN.replace("Á","A")
+        NN = NN.replace("é","e")
+        NN = NN.replace("É","E")
+        NN = NN.replace("í","i")
+        NN = NN.replace("Í","I")
+        NN = NN.replace("ó","o")
+        NN = NN.replace("Ó","O")
+        NN = NN.replace("ú","u")
+        NN = NN.replace("Ú","U")
+        NN = NN.replace("ñ","n")
+        NN = NN.replace("Ñ","N")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
+        
+        if "###" in URLL:
+            idd = URLL.split("###")[1].split(";")[0]
+            typee = URLL.split("###")[1].split(";")[1]
+            URLL = URLL.split("###")[0]
+        
+        Categ = RutaTMP + NN.encode('utf8') + "_1.xml"
+        
+        
+        url = 'https://hdfull.io/a/episodes'
+        post = "action=season&start=0&limit=0&show=%s&season=%s" % (idd, temporada)
+        req = urllib2.Request(url)
+        req.add_header('User-Agent',user_agent_default)
+        req.add_header('Referer', URLL)
+        Abrir = OP(req, data=post)
+        data = jsontools.load(Abrir.read())
+        Abrir.close()
+        
+        FF = open(Categ, 'w')
+        
+        for episode in data:
+
+            language = episode['languages']
+            tempo = episode['season']
+            episodio = episode['episode']
+            titulo = episode['title']['es'].decode('utf8')
+            titulo = titulo.replace('\xc3\xb1','n')
+            titulo = titulo.replace('\xc3\x81','A')
+            titulo = titulo.replace('\xc3\xa1','a')
+            titulo = titulo.replace('\xc3\x8d','I')
+            titulo = titulo.replace('\xc3\xad','i')
+            titulo = titulo.replace('\xc3\x89','E')
+            titulo = titulo.replace('\xc3\xa9','e')
+            titulo = titulo.replace('\xc3\x93','O')
+            titulo = titulo.replace('\xc3\xb3','o')
+            titulo = titulo.replace('\xc3\x9a','U')
+            titulo = titulo.replace('\xc3\xba','u')
+            if episodio == "1":
+                FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + titulo + ']]></playlist_name>\n\n')
+            
+            FF.write("<channel>\n")
+            FF.write("    <title><![CDATA[" + temporada + "x" + episodio +" - " + titulo + "]]></title>\n")
+            FF.write('    <description><![CDATA[]]></description>\n')
+            FF.write('    <playlist_url><![CDATA[' + URLL + '/episodio-' + episodio + ']]></playlist_url>\n')
+            FF.write('    <img_src><![CDATA[' + str(THUMB) + ']]></img_src>\n')
+            FF.write('    <tipo><![CDATA[hdfullEnlaces]]></tipo>\n')
+            FF.write('    <historial><![CDATA[' + Categ + ']]></historial>\n')
+            FF.write('</channel>\n\n')
+            
+            
+        FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[' + historial + ']]></prev_page_url>\n</items>')
+        FF.close()
+        
+        return Categ
+
+            
+    except Exception as er:
+        print "Error: "+ str(er) + " En Capitulos HDFULL"
+        print "Error: "+ str(er) + " En Capitulos HDFULL"
+        print "Error: "+ str(er) + " En Capitulos HDFULL"
+        return [1, er]
+        
+def Temporadas(self, Nam, URLL = "", THUMB = "", historial = ""):
+    try:
+        global opener
+        global OTRO
+        
+        NN = Nam
+        NN = NN.replace("¡","")
+        NN = NN.replace("¿","")
+        NN = NN.replace("?","")
+        NN = NN.replace(":","")
+        NN = NN.replace("º","")
+        NN = NN.replace("ª","")
+        NN = NN.replace("\"","")
+        NN = NN.replace("\'","")
+        NN = NN.replace("(","")
+        NN = NN.replace(")","")
+        NN = NN.replace("á","a")
+        NN = NN.replace("Á","A")
+        NN = NN.replace("é","e")
+        NN = NN.replace("É","E")
+        NN = NN.replace("í","i")
+        NN = NN.replace("Í","I")
+        NN = NN.replace("ó","o")
+        NN = NN.replace("Ó","O")
+        NN = NN.replace("ú","u")
+        NN = NN.replace("Ú","U")
+        NN = NN.replace("ñ","n")
+        NN = NN.replace("Ñ","N")
+        NN = NN.replace("&ntilde;","n")
+        NN = NN.replace("&quot;","")
+        NN = NN.replace("'","")
+        NN = NN.replace("&#039;","")
+        
+        if "###" in URLL:
+            idd = URLL.split("###")[1].split(";")[0]
+            typee = URLL.split("###")[1].split(";")[1]
+            URLL = URLL.split("###")[0]
+        
+        Categ = RutaTMP + NN + "1.xml"
+        
+        url = URLL
+        req = urllib2.Request(url)
+        req.add_header('User-Agent',user_agent_default)
+        req.add_header('Referer','https://hdfull.io/')
+        Abrir = OP(req)
+        data = Abrir.read()
+        Abrir.close()
+        
+        INDINI = data.find('Todas las temporadas')
+        INDFIN = data.find('<div class="breakaway-wrapper-alt">')
+        data = data[INDINI:INDFIN]
+        
+        Recopila = re.findall(r'href=\'(.*?)\'>(.*?)<', data)
+            
+        FF = open(Categ, 'w')
+        FF.write('<?xml version="1.0" encoding="iso-8859-1"?>\n<items>\n<playlist_name><![CDATA[' + NN.encode('utf8') + ']]></playlist_name>\n\n')
+        
+        if Recopila == []:
+            Mensaje = "Error","No hay mas resultados aqui."
+            FF.close()
+            return [1, Mensaje]
+        else:
+            for enlace,temporada in Recopila:
+                ENLA = enlace
+                if ENLA.find('temporada-0') != -1:
+                    pass
+                else:
+                    ENLA += "###" + idd + ";1"
+                    FF.write("<channel>\n")
+                    FF.write("    <title><![CDATA[Temporada " + temporada + "]]></title>\n")
+                    FF.write('    <description><![CDATA[<img src="' + THUMB + '">]]></description>\n')
+                    FF.write('    <playlist_url><![CDATA[' + ENLA + ']]></playlist_url>\n')
+                    FF.write('    <img_src><![CDATA[' + THUMB + ']]></img_src>\n')
+                    FF.write('    <tipo><![CDATA[hdfullCapitulos]]></tipo>\n')
+                    FF.write('    <historial><![CDATA[' + Categ +']]></historial>\n')
+                    FF.write('</channel>\n\n')
+                
+            
+            FF.write('<prev_page_url text="CH- ATRAS"><![CDATA[' + historial + ']]></prev_page_url>\n</items>')
+            FF.close()
+            
+            return Categ
+            
+    except Exception as er:
+        print "Error: "+ str(er) + " En Temporadas HDFULL"
+        print "Error: "+ str(er) + " En Temporadas HDFULL"
+        print "Error: "+ str(er) + " En Temporadas HDFULL"
+        return [1, er]
