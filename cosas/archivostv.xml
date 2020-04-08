@@ -3,15 +3,6 @@
 <playlist_name><![CDATA[ARCHIVOS TV]]></playlist_name>
 
 
-
-<channel>       
-<title><![CDATA[Portal Stream Archivostv-team 0.0.1]]></title>
-<logo_30x30></logo_30x30>
-<description><![CDATA[<img src="http://i.picasion.com/pic87/093f261a29f8f44f3f8a162e3b58e628.gif">Portal Dedicado Al Streaming De Peliculas Y Series De Alta Calidad]]></description>
-<playlist_url><![CDATA[https://raw.githubusercontent.com/losperdidos1212/1313/master/HMStream.xml]]></playlist_url>
-<buffer_kb>30000</buffer_kb>
-</channel>
-
 <channel>       
 <title><![CDATA[Megadede]]></title>
 <logo_30x30></logo_30x30>
